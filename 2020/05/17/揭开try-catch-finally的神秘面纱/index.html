@@ -8,14 +8,14 @@
 
 
     <meta name="description" content="根据 JDK Tutorial 的描述，除非在执行 try 或 catch 代码时线程被中断或 JVM 退出，finally 中的逻辑始终会执行。因此 finally 关键字常被用于释放资源，防止程序出现异常时出现资源泄露。本文主要探讨其在 JVM 层面的实现原理，以及 synchronized 关键字在类似场景的处理手段。首先来看一段简单的 try-finally 代码 1234567publi">
-<meta name="keywords" content="Java,JVM">
+<meta name="keywords" content="JVM,Java">
 <meta property="og:type" content="article">
 <meta property="og:title" content="揭开try-catch-finally的神秘面纱">
 <meta property="og:url" content="http://yoursite.com/2020/05/17/揭开try-catch-finally的神秘面纱/index.html">
 <meta property="og:site_name" content="Mr·Zh">
 <meta property="og:description" content="根据 JDK Tutorial 的描述，除非在执行 try 或 catch 代码时线程被中断或 JVM 退出，finally 中的逻辑始终会执行。因此 finally 关键字常被用于释放资源，防止程序出现异常时出现资源泄露。本文主要探讨其在 JVM 层面的实现原理，以及 synchronized 关键字在类似场景的处理手段。首先来看一段简单的 try-finally 代码 1234567publi">
 <meta property="og:locale" content="default">
-<meta property="og:updated_time" content="2020-05-18T14:31:43.976Z">
+<meta property="og:updated_time" content="2020-05-18T14:32:17.092Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="揭开try-catch-finally的神秘面纱">
 <meta name="twitter:description" content="根据 JDK Tutorial 的描述，除非在执行 try 或 catch 代码时线程被中断或 JVM 退出，finally 中的逻辑始终会执行。因此 finally 关键字常被用于释放资源，防止程序出现异常时出现资源泄露。本文主要探讨其在 JVM 层面的实现原理，以及 synchronized 关键字在类似场景的处理手段。首先来看一段简单的 try-finally 代码 1234567publi">
@@ -258,6 +258,13 @@
 <div class="card card-transparent">
     <div class="level post-navigation is-flex-wrap is-mobile">
         
+        <div class="level-start">
+            <a class="level level-item has-link-grey  article-nav-prev" href="/2020/05/31/HTTP协议与无状态/">
+                <i class="level-item fas fa-chevron-left"></i>
+                <span class="level-item">HTTP协议与无状态</span>
+            </a>
+        </div>
+        
         
         <div class="level-end">
             <a class="level level-item has-link-grey  article-nav-next" href="/2020/02/05/如何优雅的避免空指针/">
@@ -329,7 +336,7 @@
                         Posts
                     </p>
                     <p class="title has-text-weight-normal">
-                        10
+                        11
                     </p>
                 </div>
             </div>
@@ -339,7 +346,7 @@
                         Categories
                     </p>
                     <p class="title has-text-weight-normal">
-                        4
+                        5
                     </p>
                 </div>
             </div>
@@ -349,7 +356,7 @@
                         Tags
                     </p>
                     <p class="title has-text-weight-normal">
-                        12
+                        13
                     </p>
                 </div>
             </div>
@@ -446,6 +453,14 @@
             <span class="level-end">
                 <span class="level-item tag">1</span>
             </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/计算机通信/">
+            <span class="level-start">
+                <span class="level-item">计算机通信</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
         </a></li>
             </ul>
         </div>
@@ -458,7 +473,7 @@
         <h3 class="menu-label">
             Tag Cloud
         </h3>
-        <a href="/tags/JVM/" style="font-size: 12.5px;">JVM</a> <a href="/tags/Java/" style="font-size: 20px;">Java</a> <a href="/tags/Mysql/" style="font-size: 10px;">Mysql</a> <a href="/tags/volatile/" style="font-size: 10px;">volatile</a> <a href="/tags/内存屏障/" style="font-size: 10px;">内存屏障</a> <a href="/tags/可见性/" style="font-size: 10px;">可见性</a> <a href="/tags/多线程/" style="font-size: 15px;">多线程</a> <a href="/tags/操作系统/" style="font-size: 10px;">操作系统</a> <a href="/tags/故障排查/" style="font-size: 10px;">故障排查</a> <a href="/tags/最佳实践/" style="font-size: 15px;">最佳实践</a> <a href="/tags/泛型/" style="font-size: 10px;">泛型</a> <a href="/tags/锁/" style="font-size: 17.5px;">锁</a>
+        <a href="/tags/HTTP/" style="font-size: 10px;">HTTP</a> <a href="/tags/JVM/" style="font-size: 12.5px;">JVM</a> <a href="/tags/Java/" style="font-size: 20px;">Java</a> <a href="/tags/Mysql/" style="font-size: 10px;">Mysql</a> <a href="/tags/volatile/" style="font-size: 10px;">volatile</a> <a href="/tags/内存屏障/" style="font-size: 10px;">内存屏障</a> <a href="/tags/可见性/" style="font-size: 10px;">可见性</a> <a href="/tags/多线程/" style="font-size: 15px;">多线程</a> <a href="/tags/操作系统/" style="font-size: 10px;">操作系统</a> <a href="/tags/故障排查/" style="font-size: 10px;">故障排查</a> <a href="/tags/最佳实践/" style="font-size: 15px;">最佳实践</a> <a href="/tags/泛型/" style="font-size: 10px;">泛型</a> <a href="/tags/锁/" style="font-size: 17.5px;">锁</a>
     </div>
 </div>
 
@@ -477,7 +492,7 @@
                     <span class="level-item">May 2020</span>
                 </span>
                 <span class="level-end">
-                    <span class="level-item tag">1</span>
+                    <span class="level-item tag">2</span>
                 </span>
             </a>
         </li>

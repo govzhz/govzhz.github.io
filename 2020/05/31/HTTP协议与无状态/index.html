@@ -2,21 +2,23 @@
 <html>
 <head><meta name="generator" content="Hexo 3.8.0">
     <meta charset="utf-8">
-<title>Tag: 锁 - Mr·Zh</title>
+<title>HTTP协议与无状态 - Mr·Zh</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
 
 
-    <meta name="description" content="Mr·Zh&apos;s blog">
-<meta property="og:type" content="website">
-<meta property="og:title" content="Mr·Zh">
-<meta property="og:url" content="http://yoursite.com/tags/锁/index.html">
+    <meta name="description" content="大家常提起 HTTP 协议是无状态的，其指代的“无状态”是什么？常见的观点有：  无状态代表相同的请求参数总是能返回相同的结果 HTTP 本身的设计是无状态的，增加了有状态协议头（Cookie/Session）后变成了有状态协议  对于第一个观点显而易见是错误的，它的表示更倾向于“幂等性“，这往往无法由协议本身保证，还需要服务器进行”有状态“的响应（若服务器不进行状态的持久化，当然无法做到幂等）；">
+<meta name="keywords" content="HTTP">
+<meta property="og:type" content="article">
+<meta property="og:title" content="HTTP协议与无状态">
+<meta property="og:url" content="http://yoursite.com/2020/05/31/HTTP协议与无状态/index.html">
 <meta property="og:site_name" content="Mr·Zh">
-<meta property="og:description" content="Mr·Zh&apos;s blog">
+<meta property="og:description" content="大家常提起 HTTP 协议是无状态的，其指代的“无状态”是什么？常见的观点有：  无状态代表相同的请求参数总是能返回相同的结果 HTTP 本身的设计是无状态的，增加了有状态协议头（Cookie/Session）后变成了有状态协议  对于第一个观点显而易见是错误的，它的表示更倾向于“幂等性“，这往往无法由协议本身保证，还需要服务器进行”有状态“的响应（若服务器不进行状态的持久化，当然无法做到幂等）；">
 <meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2020-05-31T12:56:27.982Z">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Mr·Zh">
-<meta name="twitter:description" content="Mr·Zh&apos;s blog">
+<meta name="twitter:title" content="HTTP协议与无状态">
+<meta name="twitter:description" content="大家常提起 HTTP 协议是无状态的，其指代的“无状态”是什么？常见的观点有：  无状态代表相同的请求参数总是能返回相同的结果 HTTP 本身的设计是无状态的，增加了有状态协议头（Cookie/Session）后变成了有状态协议  对于第一个观点显而易见是错误的，它的表示更倾向于“幂等性“，这往往无法由协议本身保证，还需要服务器进行”有状态“的响应（若服务器不进行状态的持久化，当然无法做到幂等）；">
 
 
 
@@ -86,7 +88,7 @@
         <div class="navbar-brand is-flex-center">
             <a class="navbar-item navbar-logo" href="/">
             
-                <img src="/images/logo.png" alt="Mr·Zh" height="28">
+                <img src="/images/logo.png" alt="HTTP协议与无状态" height="28">
             
             </a>
         </div>
@@ -118,6 +120,10 @@
                     
                 
                 
+                <a class="navbar-item is-hidden-tablet catalogue" title="Catalogue" href="javascript:;">
+                    <i class="fas fa-list-ul"></i>
+                </a>
+                
                 
                 <a class="navbar-item search" title="Search" href="javascript:;">
                     <i class="fas fa-search"></i>
@@ -132,17 +138,6 @@
         <div class="container">
             <div class="columns">
                 <div class="column is-8-tablet is-9-desktop is-9-widescreen has-order-2 column-main"><div class="card">
-    <div class="card-content">
-        <nav class="breadcrumb" aria-label="breadcrumbs">
-        <ul>
-            <li><a href="/tags">Tags</a></li>
-            <li class="is-active"><a href="#" aria-current="page">锁</a></li>
-        </ul>
-        </nav>
-    </div>
-</div>
-
-    <div class="card">
     
     <div class="card-content article ">
         
@@ -150,226 +145,71 @@
             <div class="level-left">
                 <!-- 增加图标 -->
                 <div class="level-item has-text-grey" style="float: left;"> 
-                    <i class="fas fa-calendar-alt"></i>&nbsp;&nbsp; <time class="level-item has-text-grey" datetime="2019-06-18T14:19:04.000Z">2019-06-18</time>
+                    <i class="fas fa-calendar-alt"></i>&nbsp;&nbsp; <time class="level-item has-text-grey" datetime="2020-05-31T12:51:47.000Z">2020-05-31</time>
                 </div>
                 
                 <div class="level-item">
                 <i class="fas fa-folder-open"></i>&nbsp;&nbsp;
-                <a class="has-link-grey -link" href="/categories/Mysql/">Mysql</a>
+                <a class="has-link-grey -link" href="/categories/计算机通信/">计算机通信</a>
                 </div>
                 
                 
                 <!-- 增加计数和相关图标 -->
+                
+                    <dev class="level-item has-text-grey"><i class="fa fa-eye"></i>&nbsp;&nbsp;Visitors&nbsp;<span id="busuanzi_value_page_pv"></span></dev>
                 
             </div>
         </div>
         
         <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal" align="center">
             
-                <a class="has-link-black-ter" href="/2019/06/18/SELECT-FOR-UPDATE语句深度解析/">SELECT FOR UPDATE语句深度解析</a>
+                HTTP协议与无状态
             
         </h1>
         <div class="content">
-            <p>&emsp;&emsp;<code>Mysql</code> 的 <code>SELECT ... FOR UPDATE</code> 语句是日常使用较多的用于锁定资源，确保在多个事务读取数据时始终能够读取到最新版本的数据的有效语句。那么它是怎么实现呢？在经过官网文档以及大量实践的验证之后发现网上存在大量不严谨甚至错误的信息，因此通过本文对 <code>SELECT FOR UPDATE</code> 语句作出以下总结。在具体介绍之前，先对目前网上教程或博客中会提到的几个<strong>常见误区</strong>进行纠正：</p>
+            <p>大家常提起 HTTP 协议是无状态的，其指代的“无状态”是什么？常见的观点有：</p>
 <ul>
-<li><p><del><code>SELECT FOR UPDATE</code> 在xx情况下会添加表级锁。</del> </p>
-<p>请注意，<strong>在任何情况下 <code>SELECT FOR UPDATE</code> 都不会添加表级锁。</strong>事实上，在大部分情况下（DQL 语句，DML 语句，DDL 语句）都不会添加表锁，取而代之的是各种类型的行锁。</p>
-<blockquote><p><i class="far fa-bell"></i> </p>
-<p>&emsp;&emsp;那么我们如何获取表锁呢？语句如下：</p>
-<figure class="highlight sql hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">LOCK</span> <span class="hljs-keyword">TABLES</span> xx <span class="hljs-keyword">READ</span>; <span class="hljs-comment"># 为 xx 表添加表级 S 锁</span></span><br><span class="line"><span class="hljs-keyword">LOCK</span> <span class="hljs-keyword">TABLES</span> xx WRITE;  <span class="hljs-comment"># 为 xx 表添加表级 X 锁</span></span><br></pre></td></tr></table></figure>
-
-<p>然后我们可以通过以下语句来检测当前 Mysql 有哪些表获取了表级锁</p>
-<figure class="highlight sql hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">SHOW</span> <span class="hljs-keyword">OPEN</span> <span class="hljs-keyword">TABLES</span> <span class="hljs-keyword">WHERE</span> In_use &gt; <span class="hljs-number">0</span></span><br></pre></td></tr></table></figure>
-
-<p>更多的表级锁相关知识请参考<a href="https://dev.mysql.com/doc/refman/8.0/en/lock-tables.html#table-lock-release" target="_blank" rel="noopener">官网介绍</a></p>
-</blockquote>
-</li>
-<li><p><del><code>SELECT FOR UPDATE</code> 在未使用索引时会”锁表”。</del></p>
-<p><code>SELECT FOR UPDATE</code> 确实可以通过 <code>Next-key lock</code> 锁住所有记录和间隙来实现和表锁类似的效果。但未使用索引并非充分条件，我们判断 <code>SELECT FOR UPDATE</code> 是否锁住了所有数据和间隙还需要看它的隔离级别。</p>
-</li>
+<li>无状态代表相同的请求参数总是能返回相同的结果</li>
+<li>HTTP 本身的设计是无状态的，增加了有状态协议头（Cookie/Session）后变成了有状态协议</li>
 </ul>
-        </div>
-        
-        
-        <div class="level is-mobile">
-            <div class="level-start">
-                <div class="level-item">
-                <a class="button is-size-7 is-light" href="/2019/06/18/SELECT-FOR-UPDATE语句深度解析/#more">Read More</a>
-                </div>
-            </div>
-        </div>
-        
-        
-    </div>
-</div>
-
-
-
-
-
-
-
-
-    <div class="card">
-    
-    <div class="card-content article ">
-        
-        <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
-            <div class="level-left">
-                <!-- 增加图标 -->
-                <div class="level-item has-text-grey" style="float: left;"> 
-                    <i class="fas fa-calendar-alt"></i>&nbsp;&nbsp; <time class="level-item has-text-grey" datetime="2019-02-11T13:14:39.000Z">2019-02-11</time>
-                </div>
-                
-                <div class="level-item">
-                <i class="fas fa-folder-open"></i>&nbsp;&nbsp;
-                <a class="has-link-grey -link" href="/categories/JUC/">JUC</a>
-                </div>
-                
-                
-                <!-- 增加计数和相关图标 -->
-                
-            </div>
-        </div>
-        
-        <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal" align="center">
-            
-                <a class="has-link-black-ter" href="/2019/02/11/基础同步工具类/">基础同步工具类</a>
-            
-        </h1>
-        <div class="content">
-            <p>Semaphore，CountDownLatch，CyclicBarrier 均是 JDK1.5 提供的基础并发工具：</p>
-<ul>
-<li>Semaphore 是一个计数信号量，用于限制同时访问某个特定资源的数量</li>
-<li>CountDownLatch 是一个闭锁，允许一个或多个线程等待一组其他线程执行完成后执行，但只能使用一次</li>
-<li>CyclicBarrier 是一个循环栅栏，通过它可以实现让一组线程等待至某个状态之后再全部同时执行，并且支持重复使用</li>
-</ul>
-<h2 id="Semaphore"><a href="#Semaphore" class="headerlink" title="Semaphore"></a>Semaphore</h2><figure class="highlight java hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">X</span></span>&#123;</span><br><span class="line">    </span><br><span class="line">    Random random = <span class="hljs-keyword">new</span> Random();</span><br><span class="line">    </span><br><span class="line">    Semaphore semaphore = <span class="hljs-keyword">new</span> Semaphore(<span class="hljs-number">10</span>, <span class="hljs-keyword">true</span>);</span><br><span class="line"></span><br><span class="line">    <span class="hljs-comment">// 方法本身控制同步</span></span><br><span class="line">    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">synchronized</span> Integer <span class="hljs-title">getNextAvailableItem</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> InterruptedException </span>&#123;</span><br><span class="line">        </span><br><span class="line">        <span class="hljs-comment">// 信号量控制访问次数</span></span><br><span class="line">        semaphore.acquire();</span><br><span class="line">        </span><br><span class="line">        <span class="hljs-keyword">return</span> random.nextInt();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">synchronized</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">markAsUnused</span><span class="hljs-params">(Integer item)</span></span>&#123;</span><br><span class="line">        </span><br><span class="line">        <span class="hljs-comment">// do something</span></span><br><span class="line">        </span><br><span class="line">        semaphore.release();</span><br><span class="line">        </span><br><span class="line">        <span class="hljs-keyword">return</span> <span class="hljs-keyword">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>这是 Semaphore 的一个标准的使用方式，用于控制流量。上述程序创建了一个允许 10 个线程同时访问的信号量，并且使用公平锁（一般来说用于控制流量的使用需要使用公平模式，用于防止线程饥饿），然后在提供获取资源的接口 getNextAvailableItem 方法前先获取凭证，在释放资源后释放凭证。<strong>但是注意 Semaphore 不保证并发正确性，这需要接口自己保证，因此这里使用 synchronized 来提醒这一点。</strong></p>
-        </div>
-        
-        
-        <div class="level is-mobile">
-            <div class="level-start">
-                <div class="level-item">
-                <a class="button is-size-7 is-light" href="/2019/02/11/基础同步工具类/#more">Read More</a>
-                </div>
-            </div>
-        </div>
-        
-        
-    </div>
-</div>
-
-
-
-
-
-
-
-
-    <div class="card">
-    
-    <div class="card-content article ">
-        
-        <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
-            <div class="level-left">
-                <!-- 增加图标 -->
-                <div class="level-item has-text-grey" style="float: left;"> 
-                    <i class="fas fa-calendar-alt"></i>&nbsp;&nbsp; <time class="level-item has-text-grey" datetime="2019-01-14T11:53:12.000Z">2019-01-14</time>
-                </div>
-                
-                <div class="level-item">
-                <i class="fas fa-folder-open"></i>&nbsp;&nbsp;
-                <a class="has-link-grey -link" href="/categories/JUC/">JUC</a>
-                </div>
-                
-                
-                <!-- 增加计数和相关图标 -->
-                
-            </div>
-        </div>
-        
-        <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal" align="center">
-            
-                <a class="has-link-black-ter" href="/2019/01/14/ReentrantLock/">ReentrantLock</a>
-            
-        </h1>
-        <div class="content">
-            <p>&emsp;&emsp;ReentrantLock 是基于 AQS 同步器实现的互斥锁，它支持设置公平锁/非公平锁模式，同时具有可重入性。在这里讨论 ReentrantLock 对这些特性的支持及应用。</p>
-<h2 id="标准模式"><a href="#标准模式" class="headerlink" title="标准模式"></a>标准模式</h2><figure class="highlight java hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">X</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> ReentrantLock lock = <span class="hljs-keyword">new</span> ReentrantLock();</span><br><span class="line">    </span><br><span class="line">    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">m</span><span class="hljs-params">()</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">        lock.lock();</span><br><span class="line">        </span><br><span class="line">        <span class="hljs-keyword">try</span> &#123;</span><br><span class="line"></span><br><span class="line">            <span class="hljs-comment">// ... method body</span></span><br><span class="line">        </span><br><span class="line">        &#125; <span class="hljs-keyword">finally</span> &#123;</span><br><span class="line">            </span><br><span class="line">            lock.unlock();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-        </div>
-        
-        
-        <div class="level is-mobile">
-            <div class="level-start">
-                <div class="level-item">
-                <a class="button is-size-7 is-light" href="/2019/01/14/ReentrantLock/#more">Read More</a>
-                </div>
-            </div>
-        </div>
-        
-        
-    </div>
-</div>
-
-
-
-
-
-
-
-
-    <div class="card">
-    
-    <div class="card-content article ">
-        
-        <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
-            <div class="level-left">
-                <!-- 增加图标 -->
-                <div class="level-item has-text-grey" style="float: left;"> 
-                    <i class="fas fa-calendar-alt"></i>&nbsp;&nbsp; <time class="level-item has-text-grey" datetime="2019-01-10T11:53:57.000Z">2019-01-10</time>
-                </div>
-                
-                <div class="level-item">
-                <i class="fas fa-folder-open"></i>&nbsp;&nbsp;
-                <a class="has-link-grey -link" href="/categories/JUC/">JUC</a>
-                </div>
-                
-                
-                <!-- 增加计数和相关图标 -->
-                
-            </div>
-        </div>
-        
-        <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal" align="center">
-            
-                <a class="has-link-black-ter" href="/2019/01/10/AbstractQueuedSynchronizer同步器/">AQS同步器</a>
-            
-        </h1>
-        <div class="content">
-            <p>&emsp;&emsp;在 java.util.concurrent (JUC) 并发包中，如 ReentrantLock，Semaphore，CountDownLatch 等并发类的同步控制都是基于 AbstractQueuedSynchronizer (简称 AQS) 这个同步器抽象类来实现的。在这里较为深入的讨论同步器抽象类的实现原理与应用。</p>
-<h2 id="AQS简介"><a href="#AQS简介" class="headerlink" title="AQS简介"></a>AQS简介</h2><p>AbstractQueuedSynchronizer 内部维护着一个 FIFO 的 CLH 队列，队列中的每个 Node 代表着一个需要获取锁的线程</p>
-<p><img src="https://zzcoder.oss-cn-hangzhou.aliyuncs.com/juc/aqs01.png" alt=""></p>
+<p>对于第一个观点显而易见是错误的，它的表示更倾向于“幂等性“，这往往无法由协议本身保证，还需要服务器进行”有状态“的响应（若服务器不进行状态的持久化，当然无法做到幂等）；而第二个观点听起来就靠谱很多，通过 Cookie/Session 进行状态维护从而保证了有状态。但我们可以考虑下 Cookie 或 Session 保证的是谁的状态？一般情况下，它们保证了后端服务器的状态，而非 HTTP 协议的状态。因此对于最初的问题 <em>HTTP 协议的”无状态“</em>，我们是不是应该从协议的本身出发呢？</p>
+<a id="more"></a>
+<h1 id="什么是”无状态“协议"><a href="#什么是”无状态“协议" class="headerlink" title="什么是”无状态“协议"></a>什么是”无状态“协议</h1><p>对于”有状态“协议来说，多次请求间往往包含关联，就比如之前提到的服务端依赖 Cookie/Session 进行状态维护来保证关联，但区别在于有状态协议的状态维护应由协议本身来保证，换句话说，<code>”有状态“协议本身存在会话（Session），一般和连接绑定的</code>。比如 TCP 连接，传输双方是需要进行”有状态“交互（双方在三次握手后均进行状态信息的保存），且会话会随着连接断开而结束。反过来说，<code>”无状态“协议本身不存在会话概念，其每个请求无论在哪个连接都是完全独立且正确的（即不会和先前的请求产生关联）</code>。</p>
 <blockquote>
-<i class="far fa-bell"></i> 
-<p>&emsp;&emsp;自旋锁：自旋锁是指当一个线程尝试获取某个锁时，如果该锁已被其他线程占用，就一直循环检测锁是否被释放，而不是立刻进入线程挂起或睡眠状态。</p>
-<ul>
-<li>CLH 锁（Craig, Landin, and Hagersten  locks）：基于链表的可扩展、高性能、公平的自旋锁，它不断轮询前驱的状态，如果发现前驱释放了锁就结束自旋</li>
-<li>MCS 锁：在当前结点自旋，但由前驱结点通知其结束自旋</li>
-</ul>
+<p>Cookie/Session 所带来的会话不属于协议本身的状态，协议本身也无法应用这些状态。这种状态可以理解为应用程序基于协议实现的”有状态“应用</p>
 </blockquote>
-<p>AQS 采用的是一种变种的 CLH 队列锁：原始 CLH 是在前驱结点自旋，通过判断 pred.locked 来自旋，而 <strong>AQS 的 CLH 则是根据前驱结点的状态来控制阻塞，不会一直自旋。同时当前驱结点释放锁时会去唤醒该结点使其参与竞争锁。</strong> AQS 的结点的定义如下：</p>
+<p>众所周知 HTTP 协议是利用 TCP 进行数据传输的，那么是否利用 TCP 进行数据传输的协议都是”有状态“协议呢？当然不是，因为它们本身并没有强关联，HTTP 并不是基于 TCP 的协议，它们处于 OSI 的不同层次（HTTP 协议属于应用层协议，TCP 协议属于传输层协议），如果你想的话，也通过命名管道提供 HTTP 服务，因此<code>即使 TCP 协议是”有状态“的，也不能以此判断 HTTP 协议也是”有状态“的</code>。</p>
+<blockquote>
+<p>HTTPS 协议本质上是在应用层和传输层中间加入了 SSL 协议（严格来说，HTTPS 协议不算单独的协议），SSL 协议本身也需要通过握手（身份验证）来保持会话，因此 SSL 协议也是”有状态“协议</p>
+</blockquote>
+<h1 id="HTTP-协议是”无状态“协议吗？"><a href="#HTTP-协议是”无状态“协议吗？" class="headerlink" title="HTTP 协议是”无状态“协议吗？"></a>HTTP 协议是”无状态“协议吗？</h1><p>分清楚”有状态“/”无状态“协议后，我们可以分析一下 HTTP 协议是否为”无状态“协议：</p>
+<ul>
+<li><p>HTTP/1.0 时代每个 TCP 连接只能发送一个请求，因此无法在连接中产生会话的概念，显而易见 <code>HTTP/1.0 协议属于”无状态“协议</code>。</p>
+</li>
+<li><p>HTTP/1.1 时代引入了持久连接，即 TCP 连接默认不关闭，可以被多个请求复用。但此时的连接复用仅仅是为了提高传输效率，keep-alive 的默认情况下，它的若干个请求会排队串行化单线程处理，即后面的请求等待前面请求的返回才能获得执行机会，除此之外没有任何优化，因此 <code>HTTP/1.1 协议也属于”无状态“协议</code>。</p>
+<blockquote>
+<p>HTTP/1.1 实际上还支持 pipeline，即连续发送一组没有相互依赖的请求而不必等到上一个请求先结束，但它仍然存在线头阻塞的问题（响应仍然得串行化），使用这项特性需要浏览器支持，且仍然没有对会话的支持</p>
+</blockquote>
+</li>
+<li><p>HTTP/2.0 时代的报头压缩（HPACK，即客户端和服务器都维护之前看见的标头字段的列表），GOAWAY 帧或流控的特性都标志着会话的诞生，因此 <code>HTTP/2.0 协议属于”有状态“协议</code>。</p>
+</li>
+</ul>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ul>
+<li><a href="https://en.wikipedia.org/wiki/Stateless_protocol" target="_blank" rel="noopener">Stateless protocol</a></li>
+<li><a href="https://tools.ietf.org/html/rfc7540#section-5.1" target="_blank" rel="noopener">HTTP/2.0 Stream States</a></li>
+</ul>
+
         </div>
         
-        
-        <div class="level is-mobile">
+        <div class="level is-size-7 is-uppercase">
             <div class="level-start">
                 <div class="level-item">
-                <a class="button is-size-7 is-light" href="/2019/01/10/AbstractQueuedSynchronizer同步器/#more">Read More</a>
+                    <span class="is-size-6 has-text-grey has-mr-7">#</span>
+                    <a class="has-link-grey -link" href="/tags/HTTP/">HTTP</a>
                 </div>
             </div>
         </div>
+        
         
         
     </div>
@@ -379,9 +219,43 @@
 
 
 
+<div class="card card-transparent">
+    <div class="level post-navigation is-flex-wrap is-mobile">
+        
+        
+        <div class="level-end">
+            <a class="level level-item has-link-grey  article-nav-next" href="/2020/05/17/揭开try-catch-finally的神秘面纱/">
+                <span class="level-item">揭开try-catch-finally的神秘面纱</span>
+                <i class="level-item fas fa-chevron-right"></i>
+            </a>
+        </div>
+        
+    </div>
+</div>
 
 
 
+<div class="card">
+    <div class="card-content">
+        <h3 class="title is-5 has-text-weight-normal">Comments</h3>
+        
+<div id="comment-container"></div>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1.4.1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1.4.1/dist/gitalk.min.js"></script>
+<script>
+    var gitalk = new Gitalk({
+        clientID: 'a6ee64392ee1dba6a516',
+        clientSecret: '7638214b6ca106a17ff2301358bd4297d6e47773',
+        id: 'a0e6dfc77c5ba5c8683575385f1c3626',
+        repo: 'CoderEugene.github.io',
+        owner: 'CoderEugene',
+        admin: ["CoderEugene"]
+    })
+    gitalk.render('comment-container')
+</script>
+
+    </div>
+</div>
 </div>
                 
 
@@ -476,6 +350,29 @@
 </div>
     
         
+<div class="card widget" id="toc">
+    <div class="card-content">
+        <div class="menu">
+            <h3 class="menu-label">
+                Catalogue
+            </h3>
+            <ul class="menu-list"><li>
+        <a class="is-flex" href="#什么是”无状态“协议">
+        <span class="has-mr-6">1</span>
+        <span>什么是”无状态“协议</span>
+        </a></li><li>
+        <a class="is-flex" href="#HTTP-协议是”无状态“协议吗？">
+        <span class="has-mr-6">2</span>
+        <span>HTTP 协议是”无状态“协议吗？</span>
+        </a></li><li>
+        <a class="is-flex" href="#参考">
+        <span class="has-mr-6">3</span>
+        <span>参考</span>
+        </a></li></ul>
+        </div>
+    </div>
+</div>
+
     
         
 <div class="card widget">
@@ -649,7 +546,7 @@
             <div class="level-start has-text-centered-mobile">
                 <a class="footer-logo is-block has-mb-6" href="/">
                 
-                    <img src="/images/logo.png" alt="Mr·Zh" height="28">
+                    <img src="/images/logo.png" alt="HTTP协议与无状态" height="28">
                 
                 </a>
                 <p class="is-size-7">
