@@ -151,6 +151,71 @@
             <div class="level-left">
                 <!-- 增加图标 -->
                 <div class="level-item has-text-grey" style="float: left;"> 
+                    <i class="fas fa-calendar-alt"></i>&nbsp;&nbsp; <time class="level-item has-text-grey" datetime="2020-07-12T13:17:29.000Z">2020-07-12</time>
+                </div>
+                
+                <div class="level-item">
+                <i class="fas fa-folder-open"></i>&nbsp;&nbsp;
+                <a class="has-link-grey -link" href="/categories/计算机通信/">计算机通信</a>
+                </div>
+                
+                
+                <!-- 增加计数和相关图标 -->
+                
+            </div>
+        </div>
+        
+        <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal" align="center">
+            
+                <a class="has-link-black-ter" href="/2020/07/12/DNS是如何解析主机名的/">DNS是如何解析主机名的</a>
+            
+        </h1>
+        <div class="content">
+            <p>DNS 解析的作用就是将主机名转换为 IP 地址，那么 DNS 解析过程是怎么样的，DNS 服务器又是如何快速响应全球用户的请求的呢？</p>
+<h2 id="DNS-解析原理"><a href="#DNS-解析原理" class="headerlink" title="DNS 解析原理"></a>DNS 解析原理</h2><p>在解释 DNS 解析原理前首先需要知道的是，DNS 服务器只是一种统称，实际上 DNS 服务器的不同类型负责完全不同的功能，这对于后续理解整个原理具有非常关键的作用。下面根据 DNS 服务器功能不同主要分为 4 种类型：</p>
+<ul>
+<li><p><strong>根域名服务器</strong>：根域名服务器负责维护顶级域名（如 <code>.com</code>, <code>.net</code>, <code>.org</code> 等）对应的 TLD 域名服务器地址，即当客户端向其发送 DNS 解析请求时，根域名服务器会返回其顶级域名对应的 TLD 域名服务器地址。目前全球的根域名服务器的任播（Anycast）地址共有 13 个</p>
+</li>
+<li><p><strong>TLD 域名服务器(顶级域名服务器)</strong>：不同顶级域名由不同的托管商负责，在根域名服务器响应了 TLD 域名服务器后的域名后，用户可以在 TLD 域名服务器获取到定向到权威服务器的信息，比如返回 <code>zzcoder.cn</code> 所在的权威服务器域名</p>
+</li>
+<li><p><strong>权威服务器</strong>：权威服务器维护了特定顶级域名下的所有子域名（比如 <code>zzcoder.cn</code>）的 DNS 记录。比如用户在域名注册商(如 <code>DNSPod</code>)下注册 <code>zzcoder.cn</code> 实际上就是在权威服务器添加各类 DNS 记录（A 记录，CNAME 记录等等）</p>
+</li>
+<li><p><strong>递归解析器</strong>：递归解析器也称为 DNS 解析器。递归解析器作为客户端与 DNS 域名服务器的中间人，是面向客户端最近的一站，它负责接收客户端的 DNS 查询，并分别向<strong>根域名服务器，TLD 域名服务器，权威服务器</strong>发送解析请求，然后将最终的响应返回给客户端。常见的公开的 DNS 解析器有 Google 的 8.8.8.8, Cloudflare 的 1.1.1.1</p>
+<blockquote>
+<p>每个递归解析器都会内置 DNS 根域名服务器的 13 个 任播地址</p>
+</blockquote>
+</li>
+</ul>
+        </div>
+        
+        
+        <div class="level is-mobile">
+            <div class="level-start">
+                <div class="level-item">
+                <a class="button is-size-7 is-light" href="/2020/07/12/DNS是如何解析主机名的/#more">Read More</a>
+                </div>
+            </div>
+        </div>
+        
+        
+    </div>
+</div>
+
+
+
+
+
+
+
+
+    <div class="card">
+    
+    <div class="card-content article ">
+        
+        <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
+            <div class="level-left">
+                <!-- 增加图标 -->
+                <div class="level-item has-text-grey" style="float: left;"> 
                     <i class="fas fa-calendar-alt"></i>&nbsp;&nbsp; <time class="level-item has-text-grey" datetime="2020-05-31T12:51:47.000Z">2020-05-31</time>
                 </div>
                 
@@ -236,7 +301,7 @@
                         Posts
                     </p>
                     <p class="title has-text-weight-normal">
-                        11
+                        12
                     </p>
                 </div>
             </div>
@@ -256,7 +321,7 @@
                         Tags
                     </p>
                     <p class="title has-text-weight-normal">
-                        13
+                        15
                     </p>
                 </div>
             </div>
@@ -340,7 +405,7 @@
                 <span class="level-item">计算机通信</span>
             </span>
             <span class="level-end">
-                <span class="level-item tag">1</span>
+                <span class="level-item tag">2</span>
             </span>
         </a></li>
             </ul>
@@ -354,7 +419,7 @@
         <h3 class="menu-label">
             Tag Cloud
         </h3>
-        <a href="/tags/HTTP/" style="font-size: 10px;">HTTP</a> <a href="/tags/JVM/" style="font-size: 12.5px;">JVM</a> <a href="/tags/Java/" style="font-size: 20px;">Java</a> <a href="/tags/Mysql/" style="font-size: 10px;">Mysql</a> <a href="/tags/volatile/" style="font-size: 10px;">volatile</a> <a href="/tags/内存屏障/" style="font-size: 10px;">内存屏障</a> <a href="/tags/可见性/" style="font-size: 10px;">可见性</a> <a href="/tags/多线程/" style="font-size: 15px;">多线程</a> <a href="/tags/操作系统/" style="font-size: 10px;">操作系统</a> <a href="/tags/故障排查/" style="font-size: 10px;">故障排查</a> <a href="/tags/最佳实践/" style="font-size: 15px;">最佳实践</a> <a href="/tags/泛型/" style="font-size: 10px;">泛型</a> <a href="/tags/锁/" style="font-size: 17.5px;">锁</a>
+        <a href="/tags/DNS/" style="font-size: 10px;">DNS</a> <a href="/tags/HTTP/" style="font-size: 10px;">HTTP</a> <a href="/tags/JVM/" style="font-size: 12.5px;">JVM</a> <a href="/tags/Java/" style="font-size: 20px;">Java</a> <a href="/tags/Mysql/" style="font-size: 10px;">Mysql</a> <a href="/tags/UDP/" style="font-size: 10px;">UDP</a> <a href="/tags/volatile/" style="font-size: 10px;">volatile</a> <a href="/tags/内存屏障/" style="font-size: 10px;">内存屏障</a> <a href="/tags/可见性/" style="font-size: 10px;">可见性</a> <a href="/tags/多线程/" style="font-size: 15px;">多线程</a> <a href="/tags/操作系统/" style="font-size: 10px;">操作系统</a> <a href="/tags/故障排查/" style="font-size: 10px;">故障排查</a> <a href="/tags/最佳实践/" style="font-size: 15px;">最佳实践</a> <a href="/tags/泛型/" style="font-size: 10px;">泛型</a> <a href="/tags/锁/" style="font-size: 17.5px;">锁</a>
     </div>
 </div>
 
@@ -366,6 +431,17 @@
             Archives
         </h3>
         <ul class="menu-list">
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2020/07/">
+                <span class="level-start">
+                    <span class="level-item">July 2020</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">1</span>
+                </span>
+            </a>
+        </li>
         
         <li>
             <a class="level is-marginless" href="/archives/2020/05/">

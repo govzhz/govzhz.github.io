@@ -140,6 +140,68 @@
             <div class="level-left">
                 <!-- 增加图标 -->
                 <div class="level-item has-text-grey" style="float: left;"> 
+                    <i class="fas fa-calendar-alt"></i>&nbsp;&nbsp; <time class="level-item has-text-grey" datetime="2019-01-10T11:53:57.000Z">2019-01-10</time>
+                </div>
+                
+                <div class="level-item">
+                <i class="fas fa-folder-open"></i>&nbsp;&nbsp;
+                <a class="has-link-grey -link" href="/categories/JUC/">JUC</a>
+                </div>
+                
+                
+                <!-- 增加计数和相关图标 -->
+                
+            </div>
+        </div>
+        
+        <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal" align="center">
+            
+                <a class="has-link-black-ter" href="/2019/01/10/AbstractQueuedSynchronizer同步器/">AQS同步器</a>
+            
+        </h1>
+        <div class="content">
+            <p>&emsp;&emsp;在 java.util.concurrent (JUC) 并发包中，如 ReentrantLock，Semaphore，CountDownLatch 等并发类的同步控制都是基于 AbstractQueuedSynchronizer (简称 AQS) 这个同步器抽象类来实现的。在这里较为深入的讨论同步器抽象类的实现原理与应用。</p>
+<h2 id="AQS简介"><a href="#AQS简介" class="headerlink" title="AQS简介"></a>AQS简介</h2><p>AbstractQueuedSynchronizer 内部维护着一个 FIFO 的 CLH 队列，队列中的每个 Node 代表着一个需要获取锁的线程</p>
+<p><img src="https://zzcoder.oss-cn-hangzhou.aliyuncs.com/juc/aqs01.png" alt=""></p>
+<blockquote>
+<i class="far fa-bell"></i> 
+<p>&emsp;&emsp;自旋锁：自旋锁是指当一个线程尝试获取某个锁时，如果该锁已被其他线程占用，就一直循环检测锁是否被释放，而不是立刻进入线程挂起或睡眠状态。</p>
+<ul>
+<li>CLH 锁（Craig, Landin, and Hagersten  locks）：基于链表的可扩展、高性能、公平的自旋锁，它不断轮询前驱的状态，如果发现前驱释放了锁就结束自旋</li>
+<li>MCS 锁：在当前结点自旋，但由前驱结点通知其结束自旋</li>
+</ul>
+</blockquote>
+<p>AQS 采用的是一种变种的 CLH 队列锁：原始 CLH 是在前驱结点自旋，通过判断 pred.locked 来自旋，而 <strong>AQS 的 CLH 则是根据前驱结点的状态来控制阻塞，不会一直自旋。同时当前驱结点释放锁时会去唤醒该结点使其参与竞争锁。</strong> AQS 的结点的定义如下：</p>
+        </div>
+        
+        
+        <div class="level is-mobile">
+            <div class="level-start">
+                <div class="level-item">
+                <a class="button is-size-7 is-light" href="/2019/01/10/AbstractQueuedSynchronizer同步器/#more">Read More</a>
+                </div>
+            </div>
+        </div>
+        
+        
+    </div>
+</div>
+
+
+
+
+
+
+
+
+    <div class="card">
+    
+    <div class="card-content article ">
+        
+        <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
+            <div class="level-left">
+                <!-- 增加图标 -->
+                <div class="level-item has-text-grey" style="float: left;"> 
                     <i class="fas fa-calendar-alt"></i>&nbsp;&nbsp; <time class="level-item has-text-grey" datetime="2018-12-22T14:17:33.000Z">2018-12-22</time>
                 </div>
                 
@@ -246,7 +308,7 @@
                         Posts
                     </p>
                     <p class="title has-text-weight-normal">
-                        11
+                        12
                     </p>
                 </div>
             </div>
@@ -266,7 +328,7 @@
                         Tags
                     </p>
                     <p class="title has-text-weight-normal">
-                        13
+                        15
                     </p>
                 </div>
             </div>
@@ -350,7 +412,7 @@
                 <span class="level-item">计算机通信</span>
             </span>
             <span class="level-end">
-                <span class="level-item tag">1</span>
+                <span class="level-item tag">2</span>
             </span>
         </a></li>
             </ul>
@@ -364,7 +426,7 @@
         <h3 class="menu-label">
             Tag Cloud
         </h3>
-        <a href="/tags/HTTP/" style="font-size: 10px;">HTTP</a> <a href="/tags/JVM/" style="font-size: 12.5px;">JVM</a> <a href="/tags/Java/" style="font-size: 20px;">Java</a> <a href="/tags/Mysql/" style="font-size: 10px;">Mysql</a> <a href="/tags/volatile/" style="font-size: 10px;">volatile</a> <a href="/tags/内存屏障/" style="font-size: 10px;">内存屏障</a> <a href="/tags/可见性/" style="font-size: 10px;">可见性</a> <a href="/tags/多线程/" style="font-size: 15px;">多线程</a> <a href="/tags/操作系统/" style="font-size: 10px;">操作系统</a> <a href="/tags/故障排查/" style="font-size: 10px;">故障排查</a> <a href="/tags/最佳实践/" style="font-size: 15px;">最佳实践</a> <a href="/tags/泛型/" style="font-size: 10px;">泛型</a> <a href="/tags/锁/" style="font-size: 17.5px;">锁</a>
+        <a href="/tags/DNS/" style="font-size: 10px;">DNS</a> <a href="/tags/HTTP/" style="font-size: 10px;">HTTP</a> <a href="/tags/JVM/" style="font-size: 12.5px;">JVM</a> <a href="/tags/Java/" style="font-size: 20px;">Java</a> <a href="/tags/Mysql/" style="font-size: 10px;">Mysql</a> <a href="/tags/UDP/" style="font-size: 10px;">UDP</a> <a href="/tags/volatile/" style="font-size: 10px;">volatile</a> <a href="/tags/内存屏障/" style="font-size: 10px;">内存屏障</a> <a href="/tags/可见性/" style="font-size: 10px;">可见性</a> <a href="/tags/多线程/" style="font-size: 15px;">多线程</a> <a href="/tags/操作系统/" style="font-size: 10px;">操作系统</a> <a href="/tags/故障排查/" style="font-size: 10px;">故障排查</a> <a href="/tags/最佳实践/" style="font-size: 15px;">最佳实践</a> <a href="/tags/泛型/" style="font-size: 10px;">泛型</a> <a href="/tags/锁/" style="font-size: 17.5px;">锁</a>
     </div>
 </div>
 
@@ -376,6 +438,17 @@
             Archives
         </h3>
         <ul class="menu-list">
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2020/07/">
+                <span class="level-start">
+                    <span class="level-item">July 2020</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">1</span>
+                </span>
+            </a>
+        </li>
         
         <li>
             <a class="level is-marginless" href="/archives/2020/05/">
