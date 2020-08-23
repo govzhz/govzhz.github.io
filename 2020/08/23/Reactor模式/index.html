@@ -17,7 +17,7 @@
 <meta property="og:locale" content="default">
 <meta property="og:image" content="https://zzcoder.oss-cn-hangzhou.aliyuncs.com/SingleThreadReactor.png">
 <meta property="og:image" content="https://zzcoder.oss-cn-hangzhou.aliyuncs.com/MultipleReactor模式.png">
-<meta property="og:updated_time" content="2020-08-23T08:53:08.785Z">
+<meta property="og:updated_time" content="2020-08-23T08:54:26.561Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Reactor模式">
 <meta name="twitter:description" content="标准 I/O 会存在两个阶段：（以 TCP Socket 举例）  数据在内核态和用户态的复制：TCP 协议栈维护着 Send Buffer（发送缓冲区）和 Recv Buffer（接收缓冲区），因此 read/write 都只是将用户态数据复制到内核态的 Socket Buffer(Send/Recv Buffer)。而 Socket Buffer 和网卡之间会通过 DMA 进行数据传输（不占用">
@@ -203,7 +203,7 @@
 <li>内核每次都需要遍历所有的 fd 去检查就绪的事件</li>
 <li><strong>select 返回后应用程序需要遍历 fd 数组获取真正发生事件的 fd</strong></li>
 </ul>
-<p>而后续出现的 epoll 解决了上面几个痛点，它会在<strong>内核中维护一个数据表以避免每次都需要传入 fd 数组</strong>（减少了数据复制），同时也<strong>去除了 fd 个数的限制</strong>，并且 <strong>epoll 只会返回被触发的事件对应的 fd</strong> 从而避免应用程序去做额外的扫描和过滤。</p>
+<p>而后续出现的 <code>epoll</code> 解决了上面几个痛点，它会在<strong>内核中维护一个数据表以避免每次都需要传入 fd 数组</strong>（减少了数据复制），同时也<strong>去除了 fd 个数的限制</strong>，并且 <strong>epoll 只会返回被触发的事件对应的 fd</strong> 从而避免应用程序去做额外的扫描和过滤。</p>
 <p>但是不管是哪种实现方式，I/O 多路复用的基本使用方式都是：<strong>注册 -&gt; 监听事件 -&gt; 回调处理</strong>，因为只有应用先向内核注册感兴趣的事件以及 socket，内核才会在事件发生时回调应用。</p>
 <h2 id="Reactor-模式"><a href="#Reactor-模式" class="headerlink" title="Reactor 模式"></a>Reactor 模式</h2><p>Reactor 模式是基于事件驱动的网络编程模式，能用少量的线程支持大量的连接，它也可以理解为 NIO 和 I/O 多路复用的最佳实践，在诸如 Netty 等网络编程框架已支持了 Reactor 的多种模式。单线程 Reactor 基本原理如下：</p>
 <p><img src="https://zzcoder.oss-cn-hangzhou.aliyuncs.com/SingleThreadReactor.png" alt="SingleThreadReactor"></p>
@@ -218,7 +218,7 @@
 <li>Handler 中的 read/write 这些操作由于是在接收到就绪事件后调用的，所以 I/O 操作大部分时间会使用 CPU 的，因此实际上可以构建和 CPU 核心数相同的线程数来提高 CPU 利用率</li>
 <li>Handler 中的 process 业务处理操作可能存在其他阻塞 I/O 操作，比如 DB，RPC 等，因此可以创建 Worker 线程池进行处理，其线程数可大于 CPU 核心数</li>
 </ul>
-<p>因此优化后的 Reactor 模式将 read/write 操作交由其线程数等于 CPU 核心数的线程池处理，而业务处理逻辑交由单独的 Worker 线程池处理。而这就是多线程 Reactor 模型（有些地方也称为主从 Reactor 模型）的原理</p>
+<p>因此优化后的 Reactor 模式将 read/write 操作交由其线程数等于 CPU 核心数的线程池处理，而业务处理逻辑交由单独的 Worker 线程池处理。而这就是多线程 Reactor 模式（有些地方也称为主从 Reactor 模式）的原理</p>
 <p><img src="https://zzcoder.oss-cn-hangzhou.aliyuncs.com/MultipleReactor模式.png" alt="MultipleReactor"></p>
 <ul>
 <li>Main Reactor 仍然使用单线程处理，只不过这次它只需要处理新连接就绪事件</li>
@@ -287,7 +287,7 @@
 
 <div class="card">
     <div class="card-content">
-        <h3 class="title is-5 has-text-weight-normal">Commentaires</h3>
+        <h3 class="title is-5 has-text-weight-normal">Comments</h3>
         
 <div id="comment-container"></div>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1.4.1/dist/gitalk.css">
@@ -340,7 +340,7 @@
             <div class="level-item has-text-centered is-marginless">
                 <div>
                     <p class="heading">
-                        Articles
+                        Posts
                     </p>
                     <p class="title has-text-weight-normal">
                         13
@@ -350,7 +350,7 @@
             <div class="level-item has-text-centered is-marginless">
                 <div>
                     <p class="heading">
-                        Catégories
+                        Categories
                     </p>
                     <p class="title has-text-weight-normal">
                         5
@@ -370,7 +370,7 @@
         </nav>
         <div class="level">
             <a class="level-item button is-link is-rounded" href="https://github.com/CoderEugene">
-                SUIVRE</a>
+                Follow</a>
         </div>
         
         
@@ -433,7 +433,7 @@
     <div class="card-content">
         <div class="menu">
             <h3 class="menu-label">
-                Catégories
+                Categories
             </h3>
             <ul class="menu-list">
             <li>
@@ -486,7 +486,7 @@
 <div class="card widget">
     <div class="card-content">
         <h3 class="menu-label">
-            Nuage de tags
+            Tag Cloud
         </h3>
         <a href="/tags/DNS/" style="font-size: 10px;">DNS</a> <a href="/tags/HTTP/" style="font-size: 10px;">HTTP</a> <a href="/tags/IO/" style="font-size: 10px;">IO</a> <a href="/tags/JVM/" style="font-size: 12.5px;">JVM</a> <a href="/tags/Java/" style="font-size: 20px;">Java</a> <a href="/tags/Mysql/" style="font-size: 10px;">Mysql</a> <a href="/tags/Netty/" style="font-size: 10px;">Netty</a> <a href="/tags/Reactor/" style="font-size: 10px;">Reactor</a> <a href="/tags/UDP/" style="font-size: 10px;">UDP</a> <a href="/tags/volatile/" style="font-size: 10px;">volatile</a> <a href="/tags/内存屏障/" style="font-size: 10px;">内存屏障</a> <a href="/tags/可见性/" style="font-size: 10px;">可见性</a> <a href="/tags/多线程/" style="font-size: 15px;">多线程</a> <a href="/tags/操作系统/" style="font-size: 10px;">操作系统</a> <a href="/tags/故障排查/" style="font-size: 10px;">故障排查</a> <a href="/tags/最佳实践/" style="font-size: 15px;">最佳实践</a> <a href="/tags/泛型/" style="font-size: 10px;">泛型</a> <a href="/tags/锁/" style="font-size: 17.5px;">锁</a>
     </div>
@@ -766,9 +766,9 @@ document.addEventListener('DOMContentLoaded', function () {
     (function (window) {
         var INSIGHT_CONFIG = {
             TRANSLATION: {
-                POSTS: 'Articles',
+                POSTS: 'Posts',
                 PAGES: 'Pages',
-                CATEGORIES: 'Catégories',
+                CATEGORIES: 'Categories',
                 TAGS: 'Tags',
                 UNTITLED: '(Untitled)',
             },
