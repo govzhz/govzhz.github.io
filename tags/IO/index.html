@@ -2,7 +2,7 @@
 <html>
 <head><meta name="generator" content="Hexo 3.8.0">
     <meta charset="utf-8">
-<title>Archives: 2020/7 - Mr·Zh</title>
+<title>Tag: IO - Mr·Zh</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
 
@@ -10,7 +10,7 @@
     <meta name="description" content="Mr·Zh&apos;s blog">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Mr·Zh">
-<meta property="og:url" content="http://yoursite.com/archives/2020/07/index.html">
+<meta property="og:url" content="http://yoursite.com/tags/IO/index.html">
 <meta property="og:site_name" content="Mr·Zh">
 <meta property="og:description" content="Mr·Zh&apos;s blog">
 <meta property="og:locale" content="default">
@@ -131,37 +131,71 @@
     <section class="section">
         <div class="container">
             <div class="columns">
-                <div class="column is-8-tablet is-9-desktop is-9-widescreen has-order-2 column-main">
-
-<div class="card widget">
+                <div class="column is-8-tablet is-9-desktop is-9-widescreen has-order-2 column-main"><div class="card">
     <div class="card-content">
-        <h3 class="tag is-link">
-        July 2020
-        </h3>
-        <div class="timeline">
-        
-            <article class="media">
-                
-                <div class="media-content">
-                    <div class="content">
-                        <time class="has-text-grey is-size-7 is-block is-uppercase" datetime="2020-07-12T13:17:29.000Z">2020-07-12</time>
-                        <a href="/2020/07/12/DNS是如何解析主机名的/" class="has-link-black-ter is-size-6">DNS是如何解析主机名的</a>
-                        <div class="level article-meta is-mobile">
-                            <div class="level-left">
-                                
-                                <div class="level-item is-size-7 is-uppercase">
-                                <a class="has-link-grey -link" href="/categories/计算机通信/">计算机通信</a>
-                                </div>
-                                
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </article>
-        
-        </div>
+        <nav class="breadcrumb" aria-label="breadcrumbs">
+        <ul>
+            <li><a href="/tags">Tags</a></li>
+            <li class="is-active"><a href="#" aria-current="page">IO</a></li>
+        </ul>
+        </nav>
     </div>
 </div>
+
+    <div class="card">
+    
+    <div class="card-content article ">
+        
+        <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
+            <div class="level-left">
+                <!-- 增加图标 -->
+                <div class="level-item has-text-grey" style="float: left;"> 
+                    <i class="fas fa-calendar-alt"></i>&nbsp;&nbsp; <time class="level-item has-text-grey" datetime="2020-08-23T08:41:25.000Z">2020-08-23</time>
+                </div>
+                
+                <div class="level-item">
+                <i class="fas fa-folder-open"></i>&nbsp;&nbsp;
+                <a class="has-link-grey -link" href="/categories/计算机通信/">计算机通信</a>
+                </div>
+                
+                
+                <!-- 增加计数和相关图标 -->
+                
+            </div>
+        </div>
+        
+        <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal" align="center">
+            
+                <a class="has-link-black-ter" href="/2020/08/23/Reactor模式/">Reactor模式</a>
+            
+        </h1>
+        <div class="content">
+            <p>标准 I/O 会存在两个阶段：（以 TCP Socket 举例）</p>
+<ul>
+<li>数据在内核态和用户态的复制：TCP 协议栈维护着 Send Buffer（发送缓冲区）和 Recv Buffer（接收缓冲区），因此 read/write 都只是将用户态数据复制到内核态的 Socket Buffer(Send/Recv Buffer)。而 Socket Buffer 和网卡之间会通过 DMA 进行数据传输（不占用 CPU）</li>
+<li>等待数据就绪：对于 read 操作来说，就绪是指 Recv Buffer 没有可读的数据；而对于 write 操作来说，就绪是指 Send Buffer 已满无法写入</li>
+</ul>
+<p>BIO 称为同步阻塞 I/O，它在上述的两个阶段均会阻塞。因此 <strong>BIO 必须为每个 TCP 连接创建新线程</strong>并阻塞等待其可读或可写。服务端若想支持大量客户端连接，在 BIO 的前提下使用多线程来解决是必然的事情，下面用一个简单的例子展示：</p>
+        </div>
+        
+        
+        <div class="level is-mobile">
+            <div class="level-start">
+                <div class="level-item">
+                <a class="button is-size-7 is-light" href="/2020/08/23/Reactor模式/#more">Read More</a>
+                </div>
+            </div>
+        </div>
+        
+        
+    </div>
+</div>
+
+
+
+
+
+
 
 
 </div>
