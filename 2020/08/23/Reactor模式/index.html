@@ -17,7 +17,7 @@
 <meta property="og:locale" content="default">
 <meta property="og:image" content="https://zzcoder.oss-cn-hangzhou.aliyuncs.com/SingleThreadReactor.png">
 <meta property="og:image" content="https://zzcoder.oss-cn-hangzhou.aliyuncs.com/MultipleReactor模式.png">
-<meta property="og:updated_time" content="2020-08-23T08:54:26.561Z">
+<meta property="og:updated_time" content="2020-08-24T15:45:53.838Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Reactor模式">
 <meta name="twitter:description" content="标准 I/O 会存在两个阶段：（以 TCP Socket 举例）  数据在内核态和用户态的复制：TCP 协议栈维护着 Send Buffer（发送缓冲区）和 Recv Buffer（接收缓冲区），因此 read/write 都只是将用户态数据复制到内核态的 Socket Buffer(Send/Recv Buffer)。而 Socket Buffer 和网卡之间会通过 DMA 进行数据传输（不占用">
@@ -226,6 +226,7 @@
 <li>Handler 的 I/O 部分（实际上 decode/encode 也可以放在这里）和 Sub Reactor 处于同一线程</li>
 <li>Handler 的业务处理部分交由 Worker 线程池处理（线程数可大于 CPU 核心数）</li>
 </ul>
+<p>其实还可以考虑一下，Handler 的业务处理所在的 Worker 线程池实际上会为每个请求分配一个线程，那么它和最初的 BIO + 多线程的模式看起来结果是一样的，所以多线程 Reactor 模式还有意义吗？答案是肯定的，Reactor 模式能承载更高的并发连接，因为大部分情况下并不是所有的连接都会产生读写事件的，可能 10K 的连接只有 1K 的连接并发产生了读写，那么处理线程数就从 10K 降到了 1K，因此 Reactor 模式才能称得上高性能 I/O 模型</p>
 <h2 id="Netty-中的线程模型"><a href="#Netty-中的线程模型" class="headerlink" title="Netty 中的线程模型"></a>Netty 中的线程模型</h2><p>Netty 支持上述的两种 Reactor 模式。首先是单线程 Reactor 模式</p>
 <figure class="highlight java hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">NioEventLoopGroup mainReactor = <span class="hljs-keyword">new</span> NioEventLoopGroup(<span class="hljs-number">1</span>);</span><br><span class="line">ServerBootstrap bootstrap = <span class="hljs-keyword">new</span> ServerBootstrap();</span><br><span class="line">bootstrap.group(mainReactor)</span><br><span class="line">    .channel(NioServerSocketChannel.class)</span><br><span class="line">    .localAddress(<span class="hljs-keyword">new</span> InetSocketAddress(<span class="hljs-number">8080</span>))</span><br><span class="line">    .childHandler(<span class="hljs-keyword">new</span> ServerHandlerInitializer());</span><br></pre></td></tr></table></figure>
 <p>NioEventLoopGroup 实现了 ExecutorService，本身是一个线程池，所以设置 NioEventLoopGroup 线程数为 1，当 <code>bootstrap.group</code> 仅传入一个 group 时 Main Reactor 和 Sub Reactor 就会使用同个线程</p>
