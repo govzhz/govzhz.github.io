@@ -140,6 +140,135 @@
             <div class="level-left">
                 <!-- 增加图标 -->
                 <div class="level-item has-text-grey" style="float: left;"> 
+                    <i class="fas fa-calendar-alt"></i>&nbsp;&nbsp; <time class="level-item has-text-grey" datetime="2020-08-30T04:26:10.000Z">2020-08-30</time>
+                </div>
+                
+                <div class="level-item">
+                <i class="fas fa-folder-open"></i>&nbsp;&nbsp;
+                <a class="has-link-grey -link" href="/categories/计算机通信/">计算机通信</a>
+                </div>
+                
+                
+                <!-- 增加计数和相关图标 -->
+                
+            </div>
+        </div>
+        
+        <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal" align="center">
+            
+                <a class="has-link-black-ter" href="/2020/08/30/Tomcat-线程模型详解/">Tomcat 线程模型详解</a>
+            
+        </h1>
+        <div class="content">
+            <p>Tomcat 作为最常见的 Servlet 容器，在 6.x 版本就支持了 NIO 模式的 Connector 和 Reactor 模式相比有什么特殊之处吗？首先来看下面的表格：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left"></th>
+<th style="text-align:center">Java Nio Connector NIO</th>
+<th style="text-align:center">Java Nio2 Connector NIO2</th>
+<th>APR/native Connector APR</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">Classname</td>
+<td style="text-align:center"><code>Http11NioProtocol</code></td>
+<td style="text-align:center"><code>Http11Nio2Protocol</code></td>
+<td><code>Http11AprProtocol</code></td>
+</tr>
+<tr>
+<td style="text-align:left">Tomcat Version</td>
+<td style="text-align:center">since 6.0.x</td>
+<td style="text-align:center">since 8.0.x</td>
+<td>since 5.5.x</td>
+</tr>
+<tr>
+<td style="text-align:left">Support Polling</td>
+<td style="text-align:center">YES</td>
+<td style="text-align:center">YES</td>
+<td>YES</td>
+</tr>
+<tr>
+<td style="text-align:left">Polling Size</td>
+<td style="text-align:center"><code>maxConnections</code></td>
+<td style="text-align:center"><code>maxConnections</code></td>
+<td><code>maxConnections</code></td>
+</tr>
+<tr>
+<td style="text-align:left">Read Request Headers</td>
+<td style="text-align:center">Non Blocking</td>
+<td style="text-align:center">Non Blocking</td>
+<td>Non Blocking</td>
+</tr>
+<tr>
+<td style="text-align:left">Read Request Body</td>
+<td style="text-align:center">Blocking</td>
+<td style="text-align:center">Blocking</td>
+<td>Blocking</td>
+</tr>
+<tr>
+<td style="text-align:left">Write Response Headers and Body</td>
+<td style="text-align:center">Blocking</td>
+<td style="text-align:center">Blocking</td>
+<td>Blocking</td>
+</tr>
+<tr>
+<td style="text-align:left">Wait for next Request</td>
+<td style="text-align:center">Non Blocking</td>
+<td style="text-align:center">Non Blocking</td>
+<td>Non Blocking</td>
+</tr>
+<tr>
+<td style="text-align:left">SSL Support</td>
+<td style="text-align:center">Java SSL or OpenSSL</td>
+<td style="text-align:center">Java SSL or OpenSSL</td>
+<td>OpenSSL</td>
+</tr>
+<tr>
+<td style="text-align:left">SSL Handshake</td>
+<td style="text-align:center">Non blocking</td>
+<td style="text-align:center">Non blocking</td>
+<td>Blocking</td>
+</tr>
+<tr>
+<td style="text-align:left">Max Connections</td>
+<td style="text-align:center"><code>maxConnections</code></td>
+<td style="text-align:center"><code>maxConnections</code></td>
+<td><code>maxConnections</code></td>
+</tr>
+</tbody>
+</table>
+        </div>
+        
+        
+        <div class="level is-mobile">
+            <div class="level-start">
+                <div class="level-item">
+                <a class="button is-size-7 is-light" href="/2020/08/30/Tomcat-线程模型详解/#more">Read More</a>
+                </div>
+            </div>
+        </div>
+        
+        
+    </div>
+</div>
+
+
+
+
+
+
+
+
+    <div class="card">
+    
+    <div class="card-content article ">
+        
+        <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
+            <div class="level-left">
+                <!-- 增加图标 -->
+                <div class="level-item has-text-grey" style="float: left;"> 
                     <i class="fas fa-calendar-alt"></i>&nbsp;&nbsp; <time class="level-item has-text-grey" datetime="2020-08-23T08:41:25.000Z">2020-08-23</time>
                 </div>
                 
@@ -677,64 +806,6 @@
 
 
 
-    <div class="card">
-    
-    <div class="card-content article ">
-        
-        <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
-            <div class="level-left">
-                <!-- 增加图标 -->
-                <div class="level-item has-text-grey" style="float: left;"> 
-                    <i class="fas fa-calendar-alt"></i>&nbsp;&nbsp; <time class="level-item has-text-grey" datetime="2019-02-11T13:14:39.000Z">2019-02-11</time>
-                </div>
-                
-                <div class="level-item">
-                <i class="fas fa-folder-open"></i>&nbsp;&nbsp;
-                <a class="has-link-grey -link" href="/categories/JUC/">JUC</a>
-                </div>
-                
-                
-                <!-- 增加计数和相关图标 -->
-                
-            </div>
-        </div>
-        
-        <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal" align="center">
-            
-                <a class="has-link-black-ter" href="/2019/02/11/基础同步工具类/">基础同步工具类</a>
-            
-        </h1>
-        <div class="content">
-            <p>Semaphore，CountDownLatch，CyclicBarrier 均是 JDK1.5 提供的基础并发工具：</p>
-<ul>
-<li>Semaphore 是一个计数信号量，用于限制同时访问某个特定资源的数量</li>
-<li>CountDownLatch 是一个闭锁，允许一个或多个线程等待一组其他线程执行完成后执行，但只能使用一次</li>
-<li>CyclicBarrier 是一个循环栅栏，通过它可以实现让一组线程等待至某个状态之后再全部同时执行，并且支持重复使用</li>
-</ul>
-<h2 id="Semaphore"><a href="#Semaphore" class="headerlink" title="Semaphore"></a>Semaphore</h2><figure class="highlight java hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">X</span></span>&#123;</span><br><span class="line">    </span><br><span class="line">    Random random = <span class="hljs-keyword">new</span> Random();</span><br><span class="line">    </span><br><span class="line">    Semaphore semaphore = <span class="hljs-keyword">new</span> Semaphore(<span class="hljs-number">10</span>, <span class="hljs-keyword">true</span>);</span><br><span class="line"></span><br><span class="line">    <span class="hljs-comment">// 方法本身控制同步</span></span><br><span class="line">    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">synchronized</span> Integer <span class="hljs-title">getNextAvailableItem</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> InterruptedException </span>&#123;</span><br><span class="line">        </span><br><span class="line">        <span class="hljs-comment">// 信号量控制访问次数</span></span><br><span class="line">        semaphore.acquire();</span><br><span class="line">        </span><br><span class="line">        <span class="hljs-keyword">return</span> random.nextInt();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">synchronized</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">markAsUnused</span><span class="hljs-params">(Integer item)</span></span>&#123;</span><br><span class="line">        </span><br><span class="line">        <span class="hljs-comment">// do something</span></span><br><span class="line">        </span><br><span class="line">        semaphore.release();</span><br><span class="line">        </span><br><span class="line">        <span class="hljs-keyword">return</span> <span class="hljs-keyword">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p>这是 Semaphore 的一个标准的使用方式，用于控制流量。上述程序创建了一个允许 10 个线程同时访问的信号量，并且使用公平锁（一般来说用于控制流量的使用需要使用公平模式，用于防止线程饥饿），然后在提供获取资源的接口 getNextAvailableItem 方法前先获取凭证，在释放资源后释放凭证。<strong>但是注意 Semaphore 不保证并发正确性，这需要接口自己保证，因此这里使用 synchronized 来提醒这一点。</strong></p>
-        </div>
-        
-        
-        <div class="level is-mobile">
-            <div class="level-start">
-                <div class="level-item">
-                <a class="button is-size-7 is-light" href="/2019/02/11/基础同步工具类/#more">Read More</a>
-                </div>
-            </div>
-        </div>
-        
-        
-    </div>
-</div>
-
-
-
-
-
-
-
-
 
     
 <div class="card card-transparent">
@@ -791,7 +862,7 @@
                         Posts
                     </p>
                     <p class="title has-text-weight-normal">
-                        13
+                        14
                     </p>
                 </div>
             </div>
@@ -811,7 +882,7 @@
                         Tags
                     </p>
                     <p class="title has-text-weight-normal">
-                        18
+                        19
                     </p>
                 </div>
             </div>
@@ -895,7 +966,7 @@
                 <span class="level-item">计算机通信</span>
             </span>
             <span class="level-end">
-                <span class="level-item tag">3</span>
+                <span class="level-item tag">4</span>
             </span>
         </a></li>
             </ul>
@@ -909,7 +980,7 @@
         <h3 class="menu-label">
             Tag Cloud
         </h3>
-        <a href="/tags/DNS/" style="font-size: 10px;">DNS</a> <a href="/tags/HTTP/" style="font-size: 10px;">HTTP</a> <a href="/tags/IO/" style="font-size: 10px;">IO</a> <a href="/tags/JVM/" style="font-size: 12.5px;">JVM</a> <a href="/tags/Java/" style="font-size: 20px;">Java</a> <a href="/tags/Mysql/" style="font-size: 10px;">Mysql</a> <a href="/tags/Netty/" style="font-size: 10px;">Netty</a> <a href="/tags/Reactor/" style="font-size: 10px;">Reactor</a> <a href="/tags/UDP/" style="font-size: 10px;">UDP</a> <a href="/tags/volatile/" style="font-size: 10px;">volatile</a> <a href="/tags/内存屏障/" style="font-size: 10px;">内存屏障</a> <a href="/tags/可见性/" style="font-size: 10px;">可见性</a> <a href="/tags/多线程/" style="font-size: 15px;">多线程</a> <a href="/tags/操作系统/" style="font-size: 10px;">操作系统</a> <a href="/tags/故障排查/" style="font-size: 10px;">故障排查</a> <a href="/tags/最佳实践/" style="font-size: 15px;">最佳实践</a> <a href="/tags/泛型/" style="font-size: 10px;">泛型</a> <a href="/tags/锁/" style="font-size: 17.5px;">锁</a>
+        <a href="/tags/DNS/" style="font-size: 10px;">DNS</a> <a href="/tags/HTTP/" style="font-size: 10px;">HTTP</a> <a href="/tags/JVM/" style="font-size: 12.5px;">JVM</a> <a href="/tags/Java/" style="font-size: 20px;">Java</a> <a href="/tags/Mysql/" style="font-size: 10px;">Mysql</a> <a href="/tags/NIO/" style="font-size: 12.5px;">NIO</a> <a href="/tags/Netty/" style="font-size: 10px;">Netty</a> <a href="/tags/Reactor/" style="font-size: 12.5px;">Reactor</a> <a href="/tags/Tomcat/" style="font-size: 10px;">Tomcat</a> <a href="/tags/UDP/" style="font-size: 10px;">UDP</a> <a href="/tags/volatile/" style="font-size: 10px;">volatile</a> <a href="/tags/内存屏障/" style="font-size: 10px;">内存屏障</a> <a href="/tags/可见性/" style="font-size: 10px;">可见性</a> <a href="/tags/多线程/" style="font-size: 15px;">多线程</a> <a href="/tags/操作系统/" style="font-size: 10px;">操作系统</a> <a href="/tags/故障排查/" style="font-size: 10px;">故障排查</a> <a href="/tags/最佳实践/" style="font-size: 15px;">最佳实践</a> <a href="/tags/泛型/" style="font-size: 10px;">泛型</a> <a href="/tags/锁/" style="font-size: 17.5px;">锁</a>
     </div>
 </div>
 
@@ -928,7 +999,7 @@
                     <span class="level-item">August 2020</span>
                 </span>
                 <span class="level-end">
-                    <span class="level-item tag">1</span>
+                    <span class="level-item tag">2</span>
                 </span>
             </a>
         </li>

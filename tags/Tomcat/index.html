@@ -2,7 +2,7 @@
 <html>
 <head><meta name="generator" content="Hexo 3.8.0">
     <meta charset="utf-8">
-<title>Tag: Netty - Mr·Zh</title>
+<title>Tag: Tomcat - Mr·Zh</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
 
@@ -10,7 +10,7 @@
     <meta name="description" content="Mr·Zh&apos;s blog">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Mr·Zh">
-<meta property="og:url" content="http://yoursite.com/tags/Netty/index.html">
+<meta property="og:url" content="http://yoursite.com/tags/Tomcat/index.html">
 <meta property="og:site_name" content="Mr·Zh">
 <meta property="og:description" content="Mr·Zh&apos;s blog">
 <meta property="og:locale" content="default">
@@ -136,7 +136,7 @@
         <nav class="breadcrumb" aria-label="breadcrumbs">
         <ul>
             <li><a href="/tags">Tags</a></li>
-            <li class="is-active"><a href="#" aria-current="page">Netty</a></li>
+            <li class="is-active"><a href="#" aria-current="page">Tomcat</a></li>
         </ul>
         </nav>
     </div>
@@ -150,7 +150,7 @@
             <div class="level-left">
                 <!-- 增加图标 -->
                 <div class="level-item has-text-grey" style="float: left;"> 
-                    <i class="fas fa-calendar-alt"></i>&nbsp;&nbsp; <time class="level-item has-text-grey" datetime="2020-08-23T08:41:25.000Z">2020-08-23</time>
+                    <i class="fas fa-calendar-alt"></i>&nbsp;&nbsp; <time class="level-item has-text-grey" datetime="2020-08-30T04:26:10.000Z">2020-08-30</time>
                 </div>
                 
                 <div class="level-item">
@@ -166,23 +166,96 @@
         
         <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal" align="center">
             
-                <a class="has-link-black-ter" href="/2020/08/23/Reactor模式/">Reactor模式</a>
+                <a class="has-link-black-ter" href="/2020/08/30/Tomcat-线程模型详解/">Tomcat 线程模型详解</a>
             
         </h1>
         <div class="content">
-            <p>标准 I/O 会存在两个阶段：（以 TCP Socket 举例）</p>
-<ul>
-<li>数据在内核态和用户态的复制：TCP 协议栈维护着 Send Buffer（发送缓冲区）和 Recv Buffer（接收缓冲区），因此 read/write 都只是将用户态数据复制到内核态的 Socket Buffer(Send/Recv Buffer)。而 Socket Buffer 和网卡之间会通过 DMA 进行数据传输（不占用 CPU）</li>
-<li>等待数据就绪：对于 read 操作来说，就绪是指 Recv Buffer 没有可读的数据；而对于 write 操作来说，就绪是指 Send Buffer 已满无法写入</li>
-</ul>
-<p>BIO 称为同步阻塞 I/O，它在上述的两个阶段均会阻塞。因此 <strong>BIO 必须为每个 TCP 连接创建新线程</strong>并阻塞等待其可读或可写。服务端若想支持大量客户端连接，在 BIO 的前提下使用多线程来解决是必然的事情，下面用一个简单的例子展示：</p>
+            <p>Tomcat 作为最常见的 Servlet 容器，在 6.x 版本就支持了 NIO 模式的 Connector 和 Reactor 模式相比有什么特殊之处吗？首先来看下面的表格：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left"></th>
+<th style="text-align:center">Java Nio Connector NIO</th>
+<th style="text-align:center">Java Nio2 Connector NIO2</th>
+<th>APR/native Connector APR</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">Classname</td>
+<td style="text-align:center"><code>Http11NioProtocol</code></td>
+<td style="text-align:center"><code>Http11Nio2Protocol</code></td>
+<td><code>Http11AprProtocol</code></td>
+</tr>
+<tr>
+<td style="text-align:left">Tomcat Version</td>
+<td style="text-align:center">since 6.0.x</td>
+<td style="text-align:center">since 8.0.x</td>
+<td>since 5.5.x</td>
+</tr>
+<tr>
+<td style="text-align:left">Support Polling</td>
+<td style="text-align:center">YES</td>
+<td style="text-align:center">YES</td>
+<td>YES</td>
+</tr>
+<tr>
+<td style="text-align:left">Polling Size</td>
+<td style="text-align:center"><code>maxConnections</code></td>
+<td style="text-align:center"><code>maxConnections</code></td>
+<td><code>maxConnections</code></td>
+</tr>
+<tr>
+<td style="text-align:left">Read Request Headers</td>
+<td style="text-align:center">Non Blocking</td>
+<td style="text-align:center">Non Blocking</td>
+<td>Non Blocking</td>
+</tr>
+<tr>
+<td style="text-align:left">Read Request Body</td>
+<td style="text-align:center">Blocking</td>
+<td style="text-align:center">Blocking</td>
+<td>Blocking</td>
+</tr>
+<tr>
+<td style="text-align:left">Write Response Headers and Body</td>
+<td style="text-align:center">Blocking</td>
+<td style="text-align:center">Blocking</td>
+<td>Blocking</td>
+</tr>
+<tr>
+<td style="text-align:left">Wait for next Request</td>
+<td style="text-align:center">Non Blocking</td>
+<td style="text-align:center">Non Blocking</td>
+<td>Non Blocking</td>
+</tr>
+<tr>
+<td style="text-align:left">SSL Support</td>
+<td style="text-align:center">Java SSL or OpenSSL</td>
+<td style="text-align:center">Java SSL or OpenSSL</td>
+<td>OpenSSL</td>
+</tr>
+<tr>
+<td style="text-align:left">SSL Handshake</td>
+<td style="text-align:center">Non blocking</td>
+<td style="text-align:center">Non blocking</td>
+<td>Blocking</td>
+</tr>
+<tr>
+<td style="text-align:left">Max Connections</td>
+<td style="text-align:center"><code>maxConnections</code></td>
+<td style="text-align:center"><code>maxConnections</code></td>
+<td><code>maxConnections</code></td>
+</tr>
+</tbody>
+</table>
         </div>
         
         
         <div class="level is-mobile">
             <div class="level-start">
                 <div class="level-item">
-                <a class="button is-size-7 is-light" href="/2020/08/23/Reactor模式/#more">Read More</a>
+                <a class="button is-size-7 is-light" href="/2020/08/30/Tomcat-线程模型详解/#more">Read More</a>
                 </div>
             </div>
         </div>
