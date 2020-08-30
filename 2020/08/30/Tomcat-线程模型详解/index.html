@@ -8,7 +8,7 @@
 
 
     <meta name="description" content="Tomcat 作为最常见的 Servlet 容器，在 6.x 版本就支持了 NIO 模式的 Connector 和 Reactor 模式相比有什么特殊之处吗？首先来看下面的表格：     Java Nio Connector NIO Java Nio2 Connector NIO2 APR/native Connector APR     Classname Http11NioProtocol H">
-<meta name="keywords" content="Reactor,NIO,Tomcat">
+<meta name="keywords" content="Reactor,NIO">
 <meta property="og:type" content="article">
 <meta property="og:title" content="Tomcat 线程模型详解">
 <meta property="og:url" content="http://yoursite.com/2020/08/30/Tomcat-线程模型详解/index.html">
@@ -17,7 +17,7 @@
 <meta property="og:locale" content="default">
 <meta property="og:image" content="https://zzcoder.oss-cn-hangzhou.aliyuncs.com/Tomcat线程模型.png">
 <meta property="og:image" content="https://zzcoder.oss-cn-hangzhou.aliyuncs.com/image-20200830112515693.png">
-<meta property="og:updated_time" content="2020-08-30T04:38:24.452Z">
+<meta property="og:updated_time" content="2020-08-30T04:43:30.908Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Tomcat 线程模型详解">
 <meta name="twitter:description" content="Tomcat 作为最常见的 Servlet 容器，在 6.x 版本就支持了 NIO 模式的 Connector 和 Reactor 模式相比有什么特殊之处吗？首先来看下面的表格：     Java Nio Connector NIO Java Nio2 Connector NIO2 APR/native Connector APR     Classname Http11NioProtocol H">
@@ -123,7 +123,7 @@
                     
                 
                 
-                <a class="navbar-item is-hidden-tablet catalogue" title="Catalogue" href="javascript:;">
+                <a class="navbar-item is-hidden-tablet catalogue" title="Catálogo" href="javascript:;">
                     <i class="fas fa-list-ul"></i>
                 </a>
                 
@@ -153,7 +153,7 @@
                 
                 <div class="level-item">
                 <i class="fas fa-folder-open"></i>&nbsp;&nbsp;
-                <a class="has-link-grey -link" href="/categories/计算机通信/">计算机通信</a>
+                <a class="has-link-grey -link" href="/categories/Tomcat/">Tomcat</a>
                 </div>
                 
                 
@@ -336,7 +336,7 @@
 <h2 id="Tomcat-or-Netty"><a href="#Tomcat-or-Netty" class="headerlink" title="Tomcat or Netty"></a>Tomcat or Netty</h2><p>Tomcat 属于 Servlet 容器，Netty 属于异步网络编程框架，但它们都能作为 web 容器。上面介绍了 Tomcat 的线程模型，那么和 Netty 相比，谁更适合做 Web 服务器呢？如果针对于 Http 协议，那么 Tomcat 是毫无疑问的，它对于 Http 有着更完善的支持，比如 Chunk 分块传输。而 Netty 是基于传输层的，所以可以支持更多的应用层协议。</p>
 <p>那么 Tomcat 和 Netty 的线程模型谁更有优势呢？其实没有本质上的区别，Tomcat 的 NIO 模式和 Netty 的 Multi-Reactor 模式都解决了“一个连接一个线程”的问题，且默认模式下业务处理和 I/O 读写都是在同个线程</p>
 <ul>
-<li>Netty 的默认模型并不是 Multi-Reactor 模型，所以业务处理默认情况下是和 Sub Reactor 处于同个线程</li>
+<li>Netty 的默认模型并不是 Multi-Reactor 模型，业务处理默认情况下是和 Sub Reactor 处于同个线程</li>
 <li>Tomcat 的读写均在 Worker 线程</li>
 </ul>
 <p>所以容器可优化业务阻塞时间较长场景的方案是：采用业务阻塞和 I/O 阻塞分离的方式实现（异步 Servlet 或 Multi-Reactor 模式）。但这已经是容器优化的极限了，它仍然无法解决大量业务线程阻塞时间过长时仍然会导致大量的线程产生的问题。因此要想进一步提高性能，不能只看容器，而需要将业务阻塞（比如缓存，数据库，RPC 等）操作变为非阻塞操作以提高线程复用程度</p>
@@ -360,7 +360,7 @@
             <div class="level-start">
                 <div class="level-item">
                     <span class="is-size-6 has-text-grey has-mr-7">#</span>
-                    <a class="has-link-grey -link" href="/tags/NIO/">NIO</a>, <a class="has-link-grey -link" href="/tags/Reactor/">Reactor</a>, <a class="has-link-grey -link" href="/tags/Tomcat/">Tomcat</a>
+                    <a class="has-link-grey -link" href="/tags/NIO/">NIO</a>, <a class="has-link-grey -link" href="/tags/Reactor/">Reactor</a>
                 </div>
             </div>
         </div>
@@ -392,7 +392,7 @@
 
 <div class="card">
     <div class="card-content">
-        <h3 class="title is-5 has-text-weight-normal">Comments</h3>
+        <h3 class="title is-5 has-text-weight-normal">Comentarios</h3>
         
 <div id="comment-container"></div>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1.4.1/dist/gitalk.css">
@@ -445,7 +445,7 @@
             <div class="level-item has-text-centered is-marginless">
                 <div>
                     <p class="heading">
-                        Posts
+                        Entradas
                     </p>
                     <p class="title has-text-weight-normal">
                         14
@@ -455,27 +455,27 @@
             <div class="level-item has-text-centered is-marginless">
                 <div>
                     <p class="heading">
-                        Categories
+                        Categorias
                     </p>
                     <p class="title has-text-weight-normal">
-                        5
+                        7
                     </p>
                 </div>
             </div>
             <div class="level-item has-text-centered is-marginless">
                 <div>
                     <p class="heading">
-                        Tags
+                        Etiquetas
                     </p>
                     <p class="title has-text-weight-normal">
-                        19
+                        17
                     </p>
                 </div>
             </div>
         </nav>
         <div class="level">
             <a class="level-item button is-link is-rounded" href="https://github.com/CoderEugene">
-                Follow</a>
+                SEGUIR</a>
         </div>
         
         
@@ -509,7 +509,7 @@
     <div class="card-content">
         <div class="menu">
             <h3 class="menu-label">
-                Catalogue
+                Catálogo
             </h3>
             <ul class="menu-list"><li>
         <a class="is-flex" href="#Tomcat-线程模型">
@@ -550,7 +550,7 @@
     <div class="card-content">
         <div class="menu">
             <h3 class="menu-label">
-                Categories
+                Categorias
             </h3>
             <ul class="menu-list">
             <li>
@@ -586,12 +586,28 @@
                 <span class="level-item tag">1</span>
             </span>
         </a></li><li>
+        <a class="level is-marginless" href="/categories/Netty/">
+            <span class="level-start">
+                <span class="level-item">Netty</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/Tomcat/">
+            <span class="level-start">
+                <span class="level-item">Tomcat</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li><li>
         <a class="level is-marginless" href="/categories/计算机通信/">
             <span class="level-start">
                 <span class="level-item">计算机通信</span>
             </span>
             <span class="level-end">
-                <span class="level-item tag">4</span>
+                <span class="level-item tag">2</span>
             </span>
         </a></li>
             </ul>
@@ -603,9 +619,9 @@
 <div class="card widget">
     <div class="card-content">
         <h3 class="menu-label">
-            Tag Cloud
+            Nube de etiquetas
         </h3>
-        <a href="/tags/DNS/" style="font-size: 10px;">DNS</a> <a href="/tags/HTTP/" style="font-size: 10px;">HTTP</a> <a href="/tags/JVM/" style="font-size: 12.5px;">JVM</a> <a href="/tags/Java/" style="font-size: 20px;">Java</a> <a href="/tags/Mysql/" style="font-size: 10px;">Mysql</a> <a href="/tags/NIO/" style="font-size: 12.5px;">NIO</a> <a href="/tags/Netty/" style="font-size: 10px;">Netty</a> <a href="/tags/Reactor/" style="font-size: 12.5px;">Reactor</a> <a href="/tags/Tomcat/" style="font-size: 10px;">Tomcat</a> <a href="/tags/UDP/" style="font-size: 10px;">UDP</a> <a href="/tags/volatile/" style="font-size: 10px;">volatile</a> <a href="/tags/内存屏障/" style="font-size: 10px;">内存屏障</a> <a href="/tags/可见性/" style="font-size: 10px;">可见性</a> <a href="/tags/多线程/" style="font-size: 15px;">多线程</a> <a href="/tags/操作系统/" style="font-size: 10px;">操作系统</a> <a href="/tags/故障排查/" style="font-size: 10px;">故障排查</a> <a href="/tags/最佳实践/" style="font-size: 15px;">最佳实践</a> <a href="/tags/泛型/" style="font-size: 10px;">泛型</a> <a href="/tags/锁/" style="font-size: 17.5px;">锁</a>
+        <a href="/tags/DNS/" style="font-size: 10px;">DNS</a> <a href="/tags/HTTP/" style="font-size: 10px;">HTTP</a> <a href="/tags/JVM/" style="font-size: 12.5px;">JVM</a> <a href="/tags/Java/" style="font-size: 20px;">Java</a> <a href="/tags/Mysql/" style="font-size: 10px;">Mysql</a> <a href="/tags/NIO/" style="font-size: 12.5px;">NIO</a> <a href="/tags/Reactor/" style="font-size: 12.5px;">Reactor</a> <a href="/tags/UDP/" style="font-size: 10px;">UDP</a> <a href="/tags/volatile/" style="font-size: 10px;">volatile</a> <a href="/tags/内存屏障/" style="font-size: 10px;">内存屏障</a> <a href="/tags/可见性/" style="font-size: 10px;">可见性</a> <a href="/tags/多线程/" style="font-size: 15px;">多线程</a> <a href="/tags/操作系统/" style="font-size: 10px;">操作系统</a> <a href="/tags/故障排查/" style="font-size: 10px;">故障排查</a> <a href="/tags/最佳实践/" style="font-size: 15px;">最佳实践</a> <a href="/tags/泛型/" style="font-size: 10px;">泛型</a> <a href="/tags/锁/" style="font-size: 17.5px;">锁</a>
     </div>
 </div>
 
@@ -614,7 +630,7 @@
     <div class="card-content">
         <div class="menu">
         <h3 class="menu-label">
-            Archives
+            Archivos
         </h3>
         <ul class="menu-list">
         
@@ -883,10 +899,10 @@ document.addEventListener('DOMContentLoaded', function () {
     (function (window) {
         var INSIGHT_CONFIG = {
             TRANSLATION: {
-                POSTS: 'Posts',
+                POSTS: 'Entradas',
                 PAGES: 'Pages',
-                CATEGORIES: 'Categories',
-                TAGS: 'Tags',
+                CATEGORIES: 'Categorias',
+                TAGS: 'Etiquetas',
                 UNTITLED: '(Untitled)',
             },
             CONTENT_URL: '/content.json',

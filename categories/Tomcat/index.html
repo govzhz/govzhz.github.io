@@ -2,7 +2,7 @@
 <html>
 <head><meta name="generator" content="Hexo 3.8.0">
     <meta charset="utf-8">
-<title>Etiqueta: 操作系统 - Mr·Zh</title>
+<title>Categoria: Tomcat - Mr·Zh</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
 
@@ -10,7 +10,7 @@
     <meta name="description" content="Mr·Zh&apos;s blog">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Mr·Zh">
-<meta property="og:url" content="http://yoursite.com/tags/操作系统/index.html">
+<meta property="og:url" content="http://yoursite.com/categories/Tomcat/index.html">
 <meta property="og:site_name" content="Mr·Zh">
 <meta property="og:description" content="Mr·Zh&apos;s blog">
 <meta property="og:locale" content="default">
@@ -135,8 +135,9 @@
     <div class="card-content">
         <nav class="breadcrumb" aria-label="breadcrumbs">
         <ul>
-            <li><a href="/tags">Etiquetas</a></li>
-            <li class="is-active"><a href="#" aria-current="page">操作系统</a></li>
+            <li><a href="/categories">Categorias</a></li>
+            
+            <li class="is-active"><a href="#" aria-current="page">Tomcat</a></li>
         </ul>
         </nav>
     </div>
@@ -150,12 +151,12 @@
             <div class="level-left">
                 <!-- 增加图标 -->
                 <div class="level-item has-text-grey" style="float: left;"> 
-                    <i class="fas fa-calendar-alt"></i>&nbsp;&nbsp; <time class="level-item has-text-grey" datetime="2018-12-22T14:17:33.000Z">2018-12-22</time>
+                    <i class="fas fa-calendar-alt"></i>&nbsp;&nbsp; <time class="level-item has-text-grey" datetime="2020-08-30T04:26:10.000Z">2020-08-30</time>
                 </div>
                 
                 <div class="level-item">
                 <i class="fas fa-folder-open"></i>&nbsp;&nbsp;
-                <a class="has-link-grey -link" href="/categories/JUC/">JUC</a>
+                <a class="has-link-grey -link" href="/categories/Tomcat/">Tomcat</a>
                 </div>
                 
                 
@@ -166,25 +167,96 @@
         
         <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal" align="center">
             
-                <a class="has-link-black-ter" href="/2018/12/22/内存屏障/">内存屏障</a>
+                <a class="has-link-black-ter" href="/2020/08/30/Tomcat-线程模型详解/">Tomcat 线程模型详解</a>
             
         </h1>
         <div class="content">
-            <p>&emsp;&emsp;现代计算机大多数采用多核处理器或多处理器以提高性能，同时每个处理器通常存在一层或多层高速缓存，这将会更进一步加快对数据的访问。但是这也带来了新的挑战，即同一数据在不同处理器之间并不保证一致。所以为了保证数据的可见性，内存屏障应运而生。它能够刷新或使本地处理器高速缓存失效，以便查看其他处理器进行的写入的最新值或使该处理器的写入对其他处理器可见。而 Java 内存模型用于屏蔽不同硬件所带来的内存访问差异，以实现程序在不同平台能保证一致的并发效果。那么在并发环境下如何正确的使用内存屏障成为了首要问题。</p>
-<h2 id="硬件内存架构"><a href="#硬件内存架构" class="headerlink" title="硬件内存架构"></a>硬件内存架构</h2><p>Java 内存模型是对硬件内存模型的抽象，因此理解它需要一些硬件基础知识。这里主要介绍 <strong>处理器的存储器结构</strong> 和 <strong>处理器的高速缓存与缓存一致性</strong></p>
-<h3 id="随机访问存储器（RAM）"><a href="#随机访问存储器（RAM）" class="headerlink" title="随机访问存储器（RAM）"></a>随机访问存储器（RAM）</h3><p>随机访问存储器（RAM），是用于和 CPU 交换数据的内部存储器。根据存储单元的工作原理不同可以分为两类：</p>
-<ul>
-<li>动态的存储器（DRAM）</li>
-<li>静态的存储器（SRAM）</li>
-</ul>
-<p>SRAM 比 DRAM 更快，但也更贵，因此 SRAM 主要作为高速缓存存储器（Cache，如 CPU 的 L1，L2），而 DRAM 则作为计算机主存。而我们常说的内存指的就是是计算机的主内存 DRAM。</p>
+            <p>Tomcat 作为最常见的 Servlet 容器，在 6.x 版本就支持了 NIO 模式的 Connector 和 Reactor 模式相比有什么特殊之处吗？首先来看下面的表格：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left"></th>
+<th style="text-align:center">Java Nio Connector NIO</th>
+<th style="text-align:center">Java Nio2 Connector NIO2</th>
+<th>APR/native Connector APR</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">Classname</td>
+<td style="text-align:center"><code>Http11NioProtocol</code></td>
+<td style="text-align:center"><code>Http11Nio2Protocol</code></td>
+<td><code>Http11AprProtocol</code></td>
+</tr>
+<tr>
+<td style="text-align:left">Tomcat Version</td>
+<td style="text-align:center">since 6.0.x</td>
+<td style="text-align:center">since 8.0.x</td>
+<td>since 5.5.x</td>
+</tr>
+<tr>
+<td style="text-align:left">Support Polling</td>
+<td style="text-align:center">YES</td>
+<td style="text-align:center">YES</td>
+<td>YES</td>
+</tr>
+<tr>
+<td style="text-align:left">Polling Size</td>
+<td style="text-align:center"><code>maxConnections</code></td>
+<td style="text-align:center"><code>maxConnections</code></td>
+<td><code>maxConnections</code></td>
+</tr>
+<tr>
+<td style="text-align:left">Read Request Headers</td>
+<td style="text-align:center">Non Blocking</td>
+<td style="text-align:center">Non Blocking</td>
+<td>Non Blocking</td>
+</tr>
+<tr>
+<td style="text-align:left">Read Request Body</td>
+<td style="text-align:center">Blocking</td>
+<td style="text-align:center">Blocking</td>
+<td>Blocking</td>
+</tr>
+<tr>
+<td style="text-align:left">Write Response Headers and Body</td>
+<td style="text-align:center">Blocking</td>
+<td style="text-align:center">Blocking</td>
+<td>Blocking</td>
+</tr>
+<tr>
+<td style="text-align:left">Wait for next Request</td>
+<td style="text-align:center">Non Blocking</td>
+<td style="text-align:center">Non Blocking</td>
+<td>Non Blocking</td>
+</tr>
+<tr>
+<td style="text-align:left">SSL Support</td>
+<td style="text-align:center">Java SSL or OpenSSL</td>
+<td style="text-align:center">Java SSL or OpenSSL</td>
+<td>OpenSSL</td>
+</tr>
+<tr>
+<td style="text-align:left">SSL Handshake</td>
+<td style="text-align:center">Non blocking</td>
+<td style="text-align:center">Non blocking</td>
+<td>Blocking</td>
+</tr>
+<tr>
+<td style="text-align:left">Max Connections</td>
+<td style="text-align:center"><code>maxConnections</code></td>
+<td style="text-align:center"><code>maxConnections</code></td>
+<td><code>maxConnections</code></td>
+</tr>
+</tbody>
+</table>
         </div>
         
         
         <div class="level is-mobile">
             <div class="level-start">
                 <div class="level-item">
-                <a class="button is-size-7 is-light" href="/2018/12/22/内存屏障/#more">Read More</a>
+                <a class="button is-size-7 is-light" href="/2020/08/30/Tomcat-线程模型详解/#more">Read More</a>
                 </div>
             </div>
         </div>

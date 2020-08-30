@@ -2,7 +2,7 @@
 <html>
 <head><meta name="generator" content="Hexo 3.8.0">
     <meta charset="utf-8">
-<title>Etiqueta: 操作系统 - Mr·Zh</title>
+<title>Categoria: Netty - Mr·Zh</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
 
@@ -10,7 +10,7 @@
     <meta name="description" content="Mr·Zh&apos;s blog">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Mr·Zh">
-<meta property="og:url" content="http://yoursite.com/tags/操作系统/index.html">
+<meta property="og:url" content="http://yoursite.com/categories/Netty/index.html">
 <meta property="og:site_name" content="Mr·Zh">
 <meta property="og:description" content="Mr·Zh&apos;s blog">
 <meta property="og:locale" content="default">
@@ -135,8 +135,9 @@
     <div class="card-content">
         <nav class="breadcrumb" aria-label="breadcrumbs">
         <ul>
-            <li><a href="/tags">Etiquetas</a></li>
-            <li class="is-active"><a href="#" aria-current="page">操作系统</a></li>
+            <li><a href="/categories">Categorias</a></li>
+            
+            <li class="is-active"><a href="#" aria-current="page">Netty</a></li>
         </ul>
         </nav>
     </div>
@@ -150,12 +151,12 @@
             <div class="level-left">
                 <!-- 增加图标 -->
                 <div class="level-item has-text-grey" style="float: left;"> 
-                    <i class="fas fa-calendar-alt"></i>&nbsp;&nbsp; <time class="level-item has-text-grey" datetime="2018-12-22T14:17:33.000Z">2018-12-22</time>
+                    <i class="fas fa-calendar-alt"></i>&nbsp;&nbsp; <time class="level-item has-text-grey" datetime="2020-08-23T08:41:25.000Z">2020-08-23</time>
                 </div>
                 
                 <div class="level-item">
                 <i class="fas fa-folder-open"></i>&nbsp;&nbsp;
-                <a class="has-link-grey -link" href="/categories/JUC/">JUC</a>
+                <a class="has-link-grey -link" href="/categories/Netty/">Netty</a>
                 </div>
                 
                 
@@ -166,25 +167,23 @@
         
         <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal" align="center">
             
-                <a class="has-link-black-ter" href="/2018/12/22/内存屏障/">内存屏障</a>
+                <a class="has-link-black-ter" href="/2020/08/23/Reactor模式/">Reactor模式</a>
             
         </h1>
         <div class="content">
-            <p>&emsp;&emsp;现代计算机大多数采用多核处理器或多处理器以提高性能，同时每个处理器通常存在一层或多层高速缓存，这将会更进一步加快对数据的访问。但是这也带来了新的挑战，即同一数据在不同处理器之间并不保证一致。所以为了保证数据的可见性，内存屏障应运而生。它能够刷新或使本地处理器高速缓存失效，以便查看其他处理器进行的写入的最新值或使该处理器的写入对其他处理器可见。而 Java 内存模型用于屏蔽不同硬件所带来的内存访问差异，以实现程序在不同平台能保证一致的并发效果。那么在并发环境下如何正确的使用内存屏障成为了首要问题。</p>
-<h2 id="硬件内存架构"><a href="#硬件内存架构" class="headerlink" title="硬件内存架构"></a>硬件内存架构</h2><p>Java 内存模型是对硬件内存模型的抽象，因此理解它需要一些硬件基础知识。这里主要介绍 <strong>处理器的存储器结构</strong> 和 <strong>处理器的高速缓存与缓存一致性</strong></p>
-<h3 id="随机访问存储器（RAM）"><a href="#随机访问存储器（RAM）" class="headerlink" title="随机访问存储器（RAM）"></a>随机访问存储器（RAM）</h3><p>随机访问存储器（RAM），是用于和 CPU 交换数据的内部存储器。根据存储单元的工作原理不同可以分为两类：</p>
+            <p>标准 I/O 会存在两个阶段：（以 TCP Socket 举例）</p>
 <ul>
-<li>动态的存储器（DRAM）</li>
-<li>静态的存储器（SRAM）</li>
+<li>数据在内核态和用户态的复制：TCP 协议栈维护着 Send Buffer（发送缓冲区）和 Recv Buffer（接收缓冲区），因此 read/write 都只是将用户态数据复制到内核态的 Socket Buffer(Send/Recv Buffer)。而 Socket Buffer 和网卡之间会通过 DMA 进行数据传输（不占用 CPU）</li>
+<li>等待数据就绪：对于 read 操作来说，就绪是指 Recv Buffer 没有可读的数据；而对于 write 操作来说，就绪是指 Send Buffer 已满无法写入</li>
 </ul>
-<p>SRAM 比 DRAM 更快，但也更贵，因此 SRAM 主要作为高速缓存存储器（Cache，如 CPU 的 L1，L2），而 DRAM 则作为计算机主存。而我们常说的内存指的就是是计算机的主内存 DRAM。</p>
+<p>BIO 称为同步阻塞 I/O，它在上述的两个阶段均会阻塞。因此 <strong>BIO 必须为每个 TCP 连接创建新线程</strong>并阻塞等待其可读或可写。服务端若想支持大量客户端连接，在 BIO 的前提下使用多线程来解决是必然的事情，下面用一个简单的例子展示：</p>
         </div>
         
         
         <div class="level is-mobile">
             <div class="level-start">
                 <div class="level-item">
-                <a class="button is-size-7 is-light" href="/2018/12/22/内存屏障/#more">Read More</a>
+                <a class="button is-size-7 is-light" href="/2020/08/23/Reactor模式/#more">Read More</a>
                 </div>
             </div>
         </div>
