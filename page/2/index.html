@@ -140,6 +140,74 @@
             <div class="level-left">
                 <!-- 增加图标 -->
                 <div class="level-item has-text-grey" style="float: left;"> 
+                    <i class="fas fa-calendar-alt"></i>&nbsp;&nbsp; <time class="level-item has-text-grey" datetime="2019-06-18T14:19:04.000Z">2019-06-18</time>
+                </div>
+                
+                <div class="level-item">
+                <i class="fas fa-folder-open"></i>&nbsp;&nbsp;
+                <a class="has-link-grey -link" href="/categories/Mysql/">Mysql</a>
+                </div>
+                
+                
+                <!-- 增加计数和相关图标 -->
+                
+            </div>
+        </div>
+        
+        <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal" align="center">
+            
+                <a class="has-link-black-ter" href="/2019/06/18/SELECT-FOR-UPDATE语句深度解析/">SELECT FOR UPDATE语句深度解析</a>
+            
+        </h1>
+        <div class="content">
+            <p>&emsp;&emsp;<code>Mysql</code> 的 <code>SELECT ... FOR UPDATE</code> 语句是日常使用较多的用于锁定资源，确保在多个事务读取数据时始终能够读取到最新版本的数据的有效语句。那么它是怎么实现呢？在经过官网文档以及大量实践的验证之后发现网上存在大量不严谨甚至错误的信息，因此通过本文对 <code>SELECT FOR UPDATE</code> 语句作出以下总结。在具体介绍之前，先对目前网上教程或博客中会提到的几个<strong>常见误区</strong>进行纠正：</p>
+<ul>
+<li><p><del><code>SELECT FOR UPDATE</code> 在xx情况下会添加表级锁。</del> </p>
+<p>请注意，<strong>在任何情况下 <code>SELECT FOR UPDATE</code> 都不会添加表级锁。</strong>事实上，在大部分情况下（DQL 语句，DML 语句，DDL 语句）都不会添加表锁，取而代之的是各种类型的行锁。</p>
+<blockquote><p><i class="far fa-bell"></i> </p>
+<p>&emsp;&emsp;那么我们如何获取表锁呢？语句如下：</p>
+<figure class="highlight sql hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">LOCK</span> <span class="hljs-keyword">TABLES</span> xx <span class="hljs-keyword">READ</span>; <span class="hljs-comment"># 为 xx 表添加表级 S 锁</span></span><br><span class="line"><span class="hljs-keyword">LOCK</span> <span class="hljs-keyword">TABLES</span> xx WRITE;  <span class="hljs-comment"># 为 xx 表添加表级 X 锁</span></span><br></pre></td></tr></table></figure>
+
+<p>然后我们可以通过以下语句来检测当前 Mysql 有哪些表获取了表级锁</p>
+<figure class="highlight sql hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">SHOW</span> <span class="hljs-keyword">OPEN</span> <span class="hljs-keyword">TABLES</span> <span class="hljs-keyword">WHERE</span> In_use &gt; <span class="hljs-number">0</span></span><br></pre></td></tr></table></figure>
+
+<p>更多的表级锁相关知识请参考<a href="https://dev.mysql.com/doc/refman/8.0/en/lock-tables.html#table-lock-release" target="_blank" rel="noopener">官网介绍</a></p>
+</blockquote>
+</li>
+<li><p><del><code>SELECT FOR UPDATE</code> 在未使用索引时会”锁表”。</del></p>
+<p><code>SELECT FOR UPDATE</code> 确实可以通过 <code>Next-key lock</code> 锁住所有记录和间隙来实现和表锁类似的效果。但未使用索引并非充分条件，我们判断 <code>SELECT FOR UPDATE</code> 是否锁住了所有数据和间隙还需要看它的隔离级别。</p>
+</li>
+</ul>
+        </div>
+        
+        
+        <div class="level is-mobile">
+            <div class="level-start">
+                <div class="level-item">
+                <a class="button is-size-7 is-light" href="/2019/06/18/SELECT-FOR-UPDATE语句深度解析/#more">Read More</a>
+                </div>
+            </div>
+        </div>
+        
+        
+    </div>
+</div>
+
+
+
+
+
+
+
+
+    <div class="card">
+    
+    <div class="card-content article ">
+        
+        <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
+            <div class="level-left">
+                <!-- 增加图标 -->
+                <div class="level-item has-text-grey" style="float: left;"> 
                     <i class="fas fa-calendar-alt"></i>&nbsp;&nbsp; <time class="level-item has-text-grey" datetime="2019-02-11T13:14:39.000Z">2019-02-11</time>
                 </div>
                 
@@ -367,10 +435,10 @@
 <div class="card card-transparent">
     <nav class="pagination is-centered" role="navigation" aria-label="pagination">
         <div class="pagination-previous">
-            <a class="is-flex-grow has-text-black-ter" href="/">Anterior</a>
+            <a class="is-flex-grow has-text-black-ter" href="/">Previous</a>
         </div>
         <div class="pagination-next is-invisible is-hidden-mobile">
-            <a class="is-flex-grow has-text-black-ter" href="/page/3/">Siguiente</a>
+            <a class="is-flex-grow has-text-black-ter" href="/page/3/">Next</a>
         </div>
         <ul class="pagination-list is-hidden-mobile">
             
@@ -415,17 +483,17 @@
             <div class="level-item has-text-centered is-marginless">
                 <div>
                     <p class="heading">
-                        Entradas
+                        Posts
                     </p>
                     <p class="title has-text-weight-normal">
-                        14
+                        15
                     </p>
                 </div>
             </div>
             <div class="level-item has-text-centered is-marginless">
                 <div>
                     <p class="heading">
-                        Categorias
+                        Categories
                     </p>
                     <p class="title has-text-weight-normal">
                         7
@@ -435,17 +503,17 @@
             <div class="level-item has-text-centered is-marginless">
                 <div>
                     <p class="heading">
-                        Etiquetas
+                        Tags
                     </p>
                     <p class="title has-text-weight-normal">
-                        17
+                        18
                     </p>
                 </div>
             </div>
         </nav>
         <div class="level">
             <a class="level-item button is-link is-rounded" href="https://github.com/CoderEugene">
-                SEGUIR</a>
+                Follow</a>
         </div>
         
         
@@ -481,7 +549,7 @@
     <div class="card-content">
         <div class="menu">
             <h3 class="menu-label">
-                Categorias
+                Categories
             </h3>
             <ul class="menu-list">
             <li>
@@ -538,7 +606,7 @@
                 <span class="level-item">计算机通信</span>
             </span>
             <span class="level-end">
-                <span class="level-item tag">2</span>
+                <span class="level-item tag">3</span>
             </span>
         </a></li>
             </ul>
@@ -550,9 +618,9 @@
 <div class="card widget">
     <div class="card-content">
         <h3 class="menu-label">
-            Nube de etiquetas
+            Tag Cloud
         </h3>
-        <a href="/tags/DNS/" style="font-size: 10px;">DNS</a> <a href="/tags/HTTP/" style="font-size: 10px;">HTTP</a> <a href="/tags/JVM/" style="font-size: 12.5px;">JVM</a> <a href="/tags/Java/" style="font-size: 20px;">Java</a> <a href="/tags/Mysql/" style="font-size: 10px;">Mysql</a> <a href="/tags/NIO/" style="font-size: 12.5px;">NIO</a> <a href="/tags/Reactor/" style="font-size: 12.5px;">Reactor</a> <a href="/tags/UDP/" style="font-size: 10px;">UDP</a> <a href="/tags/volatile/" style="font-size: 10px;">volatile</a> <a href="/tags/内存屏障/" style="font-size: 10px;">内存屏障</a> <a href="/tags/可见性/" style="font-size: 10px;">可见性</a> <a href="/tags/多线程/" style="font-size: 15px;">多线程</a> <a href="/tags/操作系统/" style="font-size: 10px;">操作系统</a> <a href="/tags/故障排查/" style="font-size: 10px;">故障排查</a> <a href="/tags/最佳实践/" style="font-size: 15px;">最佳实践</a> <a href="/tags/泛型/" style="font-size: 10px;">泛型</a> <a href="/tags/锁/" style="font-size: 17.5px;">锁</a>
+        <a href="/tags/DNS/" style="font-size: 10px;">DNS</a> <a href="/tags/HTTP/" style="font-size: 10px;">HTTP</a> <a href="/tags/JVM/" style="font-size: 12.5px;">JVM</a> <a href="/tags/Java/" style="font-size: 20px;">Java</a> <a href="/tags/Mysql/" style="font-size: 10px;">Mysql</a> <a href="/tags/NIO/" style="font-size: 12.5px;">NIO</a> <a href="/tags/Reactor/" style="font-size: 12.5px;">Reactor</a> <a href="/tags/TCP/" style="font-size: 10px;">TCP</a> <a href="/tags/UDP/" style="font-size: 10px;">UDP</a> <a href="/tags/volatile/" style="font-size: 10px;">volatile</a> <a href="/tags/内存屏障/" style="font-size: 10px;">内存屏障</a> <a href="/tags/可见性/" style="font-size: 10px;">可见性</a> <a href="/tags/多线程/" style="font-size: 15px;">多线程</a> <a href="/tags/操作系统/" style="font-size: 10px;">操作系统</a> <a href="/tags/故障排查/" style="font-size: 10px;">故障排查</a> <a href="/tags/最佳实践/" style="font-size: 15px;">最佳实践</a> <a href="/tags/泛型/" style="font-size: 10px;">泛型</a> <a href="/tags/锁/" style="font-size: 17.5px;">锁</a>
     </div>
 </div>
 
@@ -561,9 +629,20 @@
     <div class="card-content">
         <div class="menu">
         <h3 class="menu-label">
-            Archivos
+            Archives
         </h3>
         <ul class="menu-list">
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2020/09/">
+                <span class="level-start">
+                    <span class="level-item">September 2020</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">1</span>
+                </span>
+            </a>
+        </li>
         
         <li>
             <a class="level is-marginless" href="/archives/2020/08/">
@@ -830,10 +909,10 @@ document.addEventListener('DOMContentLoaded', function () {
     (function (window) {
         var INSIGHT_CONFIG = {
             TRANSLATION: {
-                POSTS: 'Entradas',
+                POSTS: 'Posts',
                 PAGES: 'Pages',
-                CATEGORIES: 'Categorias',
-                TAGS: 'Etiquetas',
+                CATEGORIES: 'Categories',
+                TAGS: 'Tags',
                 UNTITLED: '(Untitled)',
             },
             CONTENT_URL: '/content.json',

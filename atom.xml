@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://yoursite.com/"/>
-  <updated>2020-08-30T04:43:30.908Z</updated>
+  <updated>2020-09-13T15:37:17.255Z</updated>
   <id>http://yoursite.com/</id>
   
   <author>
@@ -15,6 +15,39 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>拆包粘包到底在解决什么问题</title>
+    <link href="http://yoursite.com/2020/09/13/%E6%8B%86%E5%8C%85%E7%B2%98%E5%8C%85%E5%88%B0%E5%BA%95%E5%9C%A8%E8%A7%A3%E5%86%B3%E4%BB%80%E4%B9%88%E9%97%AE%E9%A2%98/"/>
+    <id>http://yoursite.com/2020/09/13/拆包粘包到底在解决什么问题/</id>
+    <published>2020-09-13T14:56:07.000Z</published>
+    <updated>2020-09-13T15:37:17.255Z</updated>
+    
+    <content type="html"><![CDATA[<p>”TCP 拆包粘包“网络上的争论挺大的，原因在于这一概念在 RFC 中并未提到过，(*￣︶￣)有点民科的赶脚。但实际上它是挺常见的一个问题，比较准确的描述应该是<strong>应用层分包</strong>问题。那么为什么提到这一概念总是会带上 TCP 而不是 UDP 呢？因为应用层分包问题<strong>本质是接收方在某个时刻接收到的数据不构成一条完整的消息</strong></p><ul><li><p>对于 UDP 来说，它并未在 IP 协议外作出额外的可靠性特性，所以无论发送的数据荷载是多少都会完整的交由 IP 层处理，而 IP 层虽然会根据 MTU 进行分包，但是接收方会确保在 IP 层重组完成才会交由 UDP 处理，否则会直接丢弃。所以基于 UDP 协议实现的应用层协议<strong>每次接收到的数据都是完整的消息</strong>，无需应用层做额外的分包和重组</p></li><li><p>对于 TCP 来说，它是无边界的字节流协议，为了解决可靠性的问题以及各种性能优化会<strong>导致接收方收到的数据不是完整的消息</strong>，比如：</p><ul><li>若数据荷载过小时，TCP 根据 Nagle 算法整合多个小数据包统一发送</li><li>若数据荷载过大时，TCP 会根据 MSS 大小对数据进行分段发送</li></ul><p>这也就是为啥”拆包粘包“总是碰瓷 TCP 的原因了</p></li></ul><a id="more"></a><p>对于 HTTP1.0 时代，每个 HTTP 请求对应一个 TCP 连接，所以实际上每个 Socket 只会存在一个消息，所以接收方只需要一次性读到对端关闭写即可，无需考虑分包问题。而从 HTTP1.1 开始支持了 TCP 长连接，一个 TCP 连接可能顺序传过来多个请求，因此需要考虑分包策略。常见的分包策略有：</p><ul><li><strong>固定的消息长度</strong>，比如每 100 个字节代表一个消息，若不足则补位对齐。解码器处理时只需要判断当前可读的字节数，每次读取到指定长度的字节后进行解码处理即可</li><li><strong>消息头中设置长度字段</strong>，比如每个消息的前 4 个字节用于标志本次消息 Body 的大小。解码器处理时需要先判断 当前可读的字节数是否大于 Header 的大小（这里就是 4 个字节），然后解码出本次消息 Body 的大小，最后根据长度读取到消息 Body 进行解码处理</li><li><strong>使用特殊的字符作为消息边界</strong>，比如把 <code>&quot;\r\n&quot;</code> 当作消息分隔符，当解码器处理到 <code>&quot;\r\n&quot;</code> 时就可以将先前接收到的字节作为一个消息解码</li></ul><p>在消息头设置 Body 的长度应该是最常使用的方式，因为它具有一定的灵活性的同时也比较好实现。而 HTTP 协议是同时基于 <strong>消息头中设置长度字段(<code>Content-length</code>)</strong> + <strong>使用特殊的字符作为消息边界(<code>\r\n</code>)</strong> 实现的：</p><p><img src="https://zzcoder.oss-cn-hangzhou.aliyuncs.com/http-request.png" alt="http-request"></p><p>以 Netty 的实现为例，epoll 的 LT 模式（水平模式）下 Socket buffer 只要存在数据就会交由解码器进行处理，因此解码时可读取消息可能为半包状态，以下为相应的解码逻辑：</p><ul><li><p><strong>解码请求行</strong>：由于 HTTP 协议的 Request Line 和 Header 使用 <code>ascii</code> 码字符集，所以解码器将每个字节转为字符判断是否为 <code>\r\n</code>，若发现分隔符则将本行认为是请求行，接下去就会解析请求头</p><blockquote><p>若是此时读取的字节没有 <code>\r\n</code> 会怎么办呢？答案是会将已读取到字节放入 char[]，然后等待后续的字节到来拼接为完整的请求行</p></blockquote></li><li><p><strong>解码请求头</strong>：在解码出请求行后当前解析状态就会进入到解析请求头的过程，具体和请求行类似。稍微有些特殊的是只有当读取到某一行只有 <code>\r\n</code> 时才代表请求头解析完毕。请求头中有一个非常重要的字段叫做 <code>Content-length</code>，它代表后续的请求头的长度以便后续解码请求头</p></li><li><p><strong>解码请求体</strong>：当请求头中解析出来的 <code>Content-length &gt; 0</code> 就会进入到解码请求体的过程，因为 <code>Content-length</code> 已经标记了字节长度，所以只需要读取对应字节数交由应用层处理即可</p></li></ul><p>在 HTTP1.1 时代多路复用存在线头阻塞，因此虽然使用 TCP 长连接，但一个请求被响应前是无法发送下一个请求的，所以接收方接收到的同个请求的字节流自然是连续的，使用上述解码没有问题</p><blockquote><p>其实这种方案应该可以适用于大部分多路复用场景，即使是并发发送，只要发送方控制好多个消息的发送正确性，确保同个消息的字节流总是连续的即可，像 Dubbo，RocketMQ 都是类似的方案</p></blockquote><p>但 HTTP2.0 的支持并发发送的多路复用实现方案是允许同个消息的字节流非连续的，比如 A 消息还未发送完全就可以发送 B 消息了，这是怎么做到的呢？原因在于 HTTP2.0 将一个消息拆分为了多个二进制帧，每个二进制帧都会维护一个消息标记（Stream Identifier），发送方并发传输多个帧，接收方则根据消息标记进行重组。相较于之前的消息维度提高了并发度。下图是乱序发送的一个示例：</p><p><img src="https://zzcoder.oss-cn-hangzhou.aliyuncs.com/image-20200913223831809.png" alt="http2.0"></p>]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;”TCP 拆包粘包“网络上的争论挺大的，原因在于这一概念在 RFC 中并未提到过，(*￣︶￣)有点民科的赶脚。但实际上它是挺常见的一个问题，比较准确的描述应该是&lt;strong&gt;应用层分包&lt;/strong&gt;问题。那么为什么提到这一概念总是会带上 TCP 而不是 UDP 呢？因为应用层分包问题&lt;strong&gt;本质是接收方在某个时刻接收到的数据不构成一条完整的消息&lt;/strong&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;对于 UDP 来说，它并未在 IP 协议外作出额外的可靠性特性，所以无论发送的数据荷载是多少都会完整的交由 IP 层处理，而 IP 层虽然会根据 MTU 进行分包，但是接收方会确保在 IP 层重组完成才会交由 UDP 处理，否则会直接丢弃。所以基于 UDP 协议实现的应用层协议&lt;strong&gt;每次接收到的数据都是完整的消息&lt;/strong&gt;，无需应用层做额外的分包和重组&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;对于 TCP 来说，它是无边界的字节流协议，为了解决可靠性的问题以及各种性能优化会&lt;strong&gt;导致接收方收到的数据不是完整的消息&lt;/strong&gt;，比如：&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;若数据荷载过小时，TCP 根据 Nagle 算法整合多个小数据包统一发送&lt;/li&gt;
+&lt;li&gt;若数据荷载过大时，TCP 会根据 MSS 大小对数据进行分段发送&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;这也就是为啥”拆包粘包“总是碰瓷 TCP 的原因了&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+    
+    </summary>
+    
+      <category term="计算机通信" scheme="http://yoursite.com/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E9%80%9A%E4%BF%A1/"/>
+    
+    
+      <category term="TCP" scheme="http://yoursite.com/tags/TCP/"/>
+    
+  </entry>
   
   <entry>
     <title>Tomcat 线程模型详解</title>

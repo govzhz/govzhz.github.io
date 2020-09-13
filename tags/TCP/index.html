@@ -2,7 +2,7 @@
 <html>
 <head><meta name="generator" content="Hexo 3.8.0">
     <meta charset="utf-8">
-<title>Tag: DNS - Mr·Zh</title>
+<title>Tag: TCP - Mr·Zh</title>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
 
@@ -10,7 +10,7 @@
     <meta name="description" content="Mr·Zh&apos;s blog">
 <meta property="og:type" content="website">
 <meta property="og:title" content="Mr·Zh">
-<meta property="og:url" content="http://yoursite.com/tags/DNS/index.html">
+<meta property="og:url" content="http://yoursite.com/tags/TCP/index.html">
 <meta property="og:site_name" content="Mr·Zh">
 <meta property="og:description" content="Mr·Zh&apos;s blog">
 <meta property="og:locale" content="default">
@@ -136,7 +136,7 @@
         <nav class="breadcrumb" aria-label="breadcrumbs">
         <ul>
             <li><a href="/tags">Tags</a></li>
-            <li class="is-active"><a href="#" aria-current="page">DNS</a></li>
+            <li class="is-active"><a href="#" aria-current="page">TCP</a></li>
         </ul>
         </nav>
     </div>
@@ -150,7 +150,7 @@
             <div class="level-left">
                 <!-- 增加图标 -->
                 <div class="level-item has-text-grey" style="float: left;"> 
-                    <i class="fas fa-calendar-alt"></i>&nbsp;&nbsp; <time class="level-item has-text-grey" datetime="2020-07-12T13:17:29.000Z">2020-07-12</time>
+                    <i class="fas fa-calendar-alt"></i>&nbsp;&nbsp; <time class="level-item has-text-grey" datetime="2020-09-13T14:56:07.000Z">2020-09-13</time>
                 </div>
                 
                 <div class="level-item">
@@ -166,23 +166,20 @@
         
         <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal" align="center">
             
-                <a class="has-link-black-ter" href="/2020/07/12/DNS是如何解析主机名的/">DNS是如何解析主机名的</a>
+                <a class="has-link-black-ter" href="/2020/09/13/拆包粘包到底在解决什么问题/">拆包粘包到底在解决什么问题</a>
             
         </h1>
         <div class="content">
-            <p>DNS 解析的作用就是将主机名转换为 IP 地址，那么 DNS 解析过程是怎么样的，DNS 服务器又是如何快速响应全球用户的请求的呢？</p>
-<h2 id="DNS-解析原理"><a href="#DNS-解析原理" class="headerlink" title="DNS 解析原理"></a>DNS 解析原理</h2><p>在解释 DNS 解析原理前首先需要知道的是，DNS 服务器只是一种统称，实际上 DNS 服务器的不同类型负责完全不同的功能，这对于后续理解整个原理具有非常关键的作用。下面根据 DNS 服务器功能不同主要分为 4 种类型：</p>
+            <p>”TCP 拆包粘包“网络上的争论挺大的，原因在于这一概念在 RFC 中并未提到过，(*￣︶￣)有点民科的赶脚。但实际上它是挺常见的一个问题，比较准确的描述应该是<strong>应用层分包</strong>问题。那么为什么提到这一概念总是会带上 TCP 而不是 UDP 呢？因为应用层分包问题<strong>本质是接收方在某个时刻接收到的数据不构成一条完整的消息</strong></p>
 <ul>
-<li><p><strong>根域名服务器</strong>：根域名服务器负责维护顶级域名（如 <code>.com</code>, <code>.net</code>, <code>.org</code> 等）对应的 TLD 域名服务器地址，即当客户端向其发送 DNS 解析请求时，根域名服务器会返回其顶级域名对应的 TLD 域名服务器地址。目前全球的根域名服务器的任播（Anycast）地址共有 13 个</p>
+<li><p>对于 UDP 来说，它并未在 IP 协议外作出额外的可靠性特性，所以无论发送的数据荷载是多少都会完整的交由 IP 层处理，而 IP 层虽然会根据 MTU 进行分包，但是接收方会确保在 IP 层重组完成才会交由 UDP 处理，否则会直接丢弃。所以基于 UDP 协议实现的应用层协议<strong>每次接收到的数据都是完整的消息</strong>，无需应用层做额外的分包和重组</p>
 </li>
-<li><p><strong>TLD 域名服务器(顶级域名服务器)</strong>：不同顶级域名由不同的托管商负责，在根域名服务器响应了 TLD 域名服务器后的域名后，用户可以在 TLD 域名服务器获取到定向到权威服务器的信息，比如返回 <code>zzcoder.cn</code> 所在的权威服务器域名</p>
-</li>
-<li><p><strong>权威服务器</strong>：权威服务器维护了特定顶级域名下的所有子域名（比如 <code>zzcoder.cn</code>）的 DNS 记录。比如用户在域名注册商(如 <code>DNSPod</code>)下注册 <code>zzcoder.cn</code> 实际上就是在权威服务器添加各类 DNS 记录（A 记录，CNAME 记录等等）</p>
-</li>
-<li><p><strong>递归解析器</strong>：递归解析器也称为 DNS 解析器。递归解析器作为客户端与 DNS 域名服务器的中间人，是面向客户端最近的一站，它负责接收客户端的 DNS 查询，并分别向<strong>根域名服务器，TLD 域名服务器，权威服务器</strong>发送解析请求，然后将最终的响应返回给客户端。常见的公开的 DNS 解析器有 Google 的 8.8.8.8, Cloudflare 的 1.1.1.1</p>
-<blockquote>
-<p>每个递归解析器都会内置 DNS 根域名服务器的 13 个 任播地址</p>
-</blockquote>
+<li><p>对于 TCP 来说，它是无边界的字节流协议，为了解决可靠性的问题以及各种性能优化会<strong>导致接收方收到的数据不是完整的消息</strong>，比如：</p>
+<ul>
+<li>若数据荷载过小时，TCP 根据 Nagle 算法整合多个小数据包统一发送</li>
+<li>若数据荷载过大时，TCP 会根据 MSS 大小对数据进行分段发送</li>
+</ul>
+<p>这也就是为啥”拆包粘包“总是碰瓷 TCP 的原因了</p>
 </li>
 </ul>
         </div>
@@ -191,7 +188,7 @@
         <div class="level is-mobile">
             <div class="level-start">
                 <div class="level-item">
-                <a class="button is-size-7 is-light" href="/2020/07/12/DNS是如何解析主机名的/#more">Read More</a>
+                <a class="button is-size-7 is-light" href="/2020/09/13/拆包粘包到底在解决什么问题/#more">Read More</a>
                 </div>
             </div>
         </div>
