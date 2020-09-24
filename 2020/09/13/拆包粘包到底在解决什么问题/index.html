@@ -17,7 +17,7 @@
 <meta property="og:locale" content="default">
 <meta property="og:image" content="https://zzcoder.oss-cn-hangzhou.aliyuncs.com/http-request.png">
 <meta property="og:image" content="https://zzcoder.oss-cn-hangzhou.aliyuncs.com/image-20200913223831809.png">
-<meta property="og:updated_time" content="2020-09-13T15:37:17.255Z">
+<meta property="og:updated_time" content="2020-09-13T15:38:26.916Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="拆包粘包到底在解决什么问题">
 <meta name="twitter:description" content="”TCP 拆包粘包“网络上的争论挺大的，原因在于这一概念在 RFC 中并未提到过，(*￣︶￣)有点民科的赶脚。但实际上它是挺常见的一个问题，比较准确的描述应该是应用层分包问题。那么为什么提到这一概念总是会带上 TCP 而不是 UDP 呢？因为应用层分包问题本质是接收方在某个时刻接收到的数据不构成一条完整的消息  对于 UDP 来说，它并未在 IP 协议外作出额外的可靠性特性，所以无论发送的数据荷载">
@@ -195,7 +195,7 @@
 <ul>
 <li><p><strong>解码请求行</strong>：由于 HTTP 协议的 Request Line 和 Header 使用 <code>ascii</code> 码字符集，所以解码器将每个字节转为字符判断是否为 <code>\r\n</code>，若发现分隔符则将本行认为是请求行，接下去就会解析请求头</p>
 <blockquote>
-<p>若是此时读取的字节没有 <code>\r\n</code> 会怎么办呢？答案是会将已读取到字节放入 char[]，然后等待后续的字节到来拼接为完整的请求行</p>
+<p>若是此时读取的字节没有 <code>\r\n</code> 会怎么办呢？答案是会将已读取到字节放入 <code>char[]</code>，然后等待后续的字节到来拼接为完整的请求行</p>
 </blockquote>
 </li>
 <li><p><strong>解码请求头</strong>：在解码出请求行后当前解析状态就会进入到解析请求头的过程，具体和请求行类似。稍微有些特殊的是只有当读取到某一行只有 <code>\r\n</code> 时才代表请求头解析完毕。请求头中有一个非常重要的字段叫做 <code>Content-length</code>，它代表后续的请求头的长度以便后续解码请求头</p>

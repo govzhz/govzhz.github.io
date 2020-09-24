@@ -16,8 +16,9 @@
 <meta property="og:description" content="Tomcat 作为最常见的 Servlet 容器，在 6.x 版本就支持了 NIO 模式的 Connector 和 Reactor 模式相比有什么特殊之处吗？首先来看下面的表格：     Java Nio Connector NIO Java Nio2 Connector NIO2 APR/native Connector APR     Classname Http11NioProtocol H">
 <meta property="og:locale" content="default">
 <meta property="og:image" content="https://zzcoder.oss-cn-hangzhou.aliyuncs.com/Tomcat线程模型.png">
+<meta property="og:image" content="https://zzcoder.oss-cn-hangzhou.aliyuncs.com/image-20200924185239968.png">
 <meta property="og:image" content="https://zzcoder.oss-cn-hangzhou.aliyuncs.com/image-20200830112515693.png">
-<meta property="og:updated_time" content="2020-08-30T04:43:30.908Z">
+<meta property="og:updated_time" content="2020-09-24T10:59:08.123Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="Tomcat 线程模型详解">
 <meta name="twitter:description" content="Tomcat 作为最常见的 Servlet 容器，在 6.x 版本就支持了 NIO 模式的 Connector 和 Reactor 模式相比有什么特殊之处吗？首先来看下面的表格：     Java Nio Connector NIO Java Nio2 Connector NIO2 APR/native Connector APR     Classname Http11NioProtocol H">
@@ -328,11 +329,14 @@
 </li>
 </ul>
 <p>所以写数据和读取 Request Body 是非常相似的过程</p>
-<h2 id="Servlet-异步接口"><a href="#Servlet-异步接口" class="headerlink" title="Servlet 异步接口"></a>Servlet 异步接口</h2><p>上面提到了 Tomcat 的 I/O 读写和业务阻塞均在同个 Servlet 线程，这在业务阻塞时间较长时很容易出现 Tomcat 的 Worker 线程池任务堆积（默认最大 200 个线程），无法支撑高并发场景。而在 Servlet3.1 开始支持了非阻塞 I/O，示例代码如下：</p>
-<figure class="highlight java hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">AsyncContext actx = request.startAsync();</span><br><span class="line">actx.setTimeout(<span class="hljs-number">20000</span>);</span><br><span class="line">ServletInputStream in = request.getInputStream();</span><br><span class="line">in.setReadListener(<span class="hljs-keyword">new</span> MyReadListener(in,actx));</span><br></pre></td></tr></table></figure>
-<p>通过异步模式可以将 I/O 读写和业务阻塞分离以达到复用 Worker 线程的作用。根据 <a href="http://tomcat.apache.org/whichversion.html" target="_blank" rel="noopener">Apache Tomcat Versions</a> 的介绍，在 Tomcat8.x 中已经支持了 Servlet3.1</p>
-<p><img src="https://zzcoder.oss-cn-hangzhou.aliyuncs.com/image-20200830112515693.png" alt="image-20200830112515693"></p>
-<p>通过异步 Servlet 的支持，<strong>Tomcat 既解决了“一个连接一个请求”的问题，又解决高并发下业务阻塞会影响到读写线程的问题</strong>。当然对于如何使用异步 Servlet 以及 Tomcat 如何实现的感兴趣的话可以通过源码深入，本文不做过多介绍</p>
+<h2 id="Servlet-异步和非阻塞"><a href="#Servlet-异步和非阻塞" class="headerlink" title="Servlet 异步和非阻塞"></a>Servlet 异步和非阻塞</h2><p>上面提到了 Tomcat 的 I/O 读写和业务阻塞均在同个 Servlet 线程，这在业务阻塞时间较长时很容易出现 Tomcat 的 Worker 线程池任务堆积（默认最大 200 个线程），无法支撑高并发场景。而在 Servlet3.0 开始支持了 Servlet 异步接口：</p>
+<figure class="highlight java hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">AsyncContext asyncContext = request.startAsync();</span><br><span class="line"></span><br><span class="line">asyncContext.start(() -&gt; &#123;</span><br><span class="line">    process();</span><br><span class="line">    asyncContext.complete();</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>通过异步模式可以将 I/O 读写和业务阻塞分离以达到复用 Worker 线程的作用。但是此时 InputStream 和 OutputStream 的 I/O 操作仍然是阻塞的，这总是会导致线程无用的等待，因此在 Servlet3.1 开始支持非阻塞 I/O</p>
+<p><img src="https://zzcoder.oss-cn-hangzhou.aliyuncs.com/image-20200924185239968.png" alt="servlet-api" style="zoom:50%;"></p>
+<p>结合异步模式和非阻塞 I/O，Tomcat 就真正<strong>既解决了“一个连接一个请求”的问题，又解决高并发下业务阻塞会影响到读写线程的问题</strong></p>
+<figure class="highlight java hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">AsyncContext asyncContext = request.startAsync();</span><br><span class="line">ServletInputStream inputStream = request.getInputStream();</span><br><span class="line">inputStream.setReadListener(<span class="hljs-keyword">new</span> ReadListener() &#123;</span><br><span class="line">    <span class="hljs-meta">@Override</span></span><br><span class="line">    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">onDataAvailable</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> IOException </span>&#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="hljs-meta">@Override</span></span><br><span class="line">    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">onAllDataRead</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> IOException </span>&#123;</span><br><span class="line">        executor.execute(() -&gt; &#123;</span><br><span class="line">            process();</span><br><span class="line">            <span class="hljs-keyword">try</span> &#123;</span><br><span class="line">                asyncContext.getResponse().getWriter().write(<span class="hljs-string">"xxx"</span>);</span><br><span class="line">            &#125; <span class="hljs-keyword">catch</span> (IOException e) &#123;</span><br><span class="line">                e.printStackTrace();</span><br><span class="line">            &#125;</span><br><span class="line">            asyncContext.complete();</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="hljs-meta">@Override</span></span><br><span class="line">    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">onError</span><span class="hljs-params">(Throwable t)</span> </span>&#123;</span><br><span class="line">        asyncContext.complete();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+<p>根据 <a href="http://tomcat.apache.org/whichversion.html" target="_blank" rel="noopener">Apache Tomcat Versions</a> 的介绍，在 Tomcat8.x 中已经支持了 Servlet3.1</p>
+<p><img src="https://zzcoder.oss-cn-hangzhou.aliyuncs.com/image-20200830112515693.png" alt="tomcat-version"></p>
 <h2 id="Tomcat-or-Netty"><a href="#Tomcat-or-Netty" class="headerlink" title="Tomcat or Netty"></a>Tomcat or Netty</h2><p>Tomcat 属于 Servlet 容器，Netty 属于异步网络编程框架，但它们都能作为 web 容器。上面介绍了 Tomcat 的线程模型，那么和 Netty 相比，谁更适合做 Web 服务器呢？如果针对于 Http 协议，那么 Tomcat 是毫无疑问的，它对于 Http 有着更完善的支持，比如 Chunk 分块传输。而 Netty 是基于传输层的，所以可以支持更多的应用层协议。</p>
 <p>那么 Tomcat 和 Netty 的线程模型谁更有优势呢？其实没有本质上的区别，Tomcat 的 NIO 模式和 Netty 的 Multi-Reactor 模式都解决了“一个连接一个线程”的问题，且默认模式下业务处理和 I/O 读写都是在同个线程</p>
 <ul>
@@ -535,9 +539,9 @@
         <span class="has-mr-6">2.2</span>
         <span>阻塞写入数据</span>
         </a></li></ul></li><li>
-        <a class="is-flex" href="#Servlet-异步接口">
+        <a class="is-flex" href="#Servlet-异步和非阻塞">
         <span class="has-mr-6">3</span>
-        <span>Servlet 异步接口</span>
+        <span>Servlet 异步和非阻塞</span>
         </a></li><li>
         <a class="is-flex" href="#Tomcat-or-Netty">
         <span class="has-mr-6">4</span>
