@@ -8,7 +8,7 @@
 
 
     <meta name="description" content="根据 JDK Tutorial 的描述，除非在执行 try 或 catch 代码时线程被中断或 JVM 退出，finally 中的逻辑始终会执行。因此 finally 关键字常被用于释放资源，防止程序出现异常时出现资源泄露。本文主要探讨其在 JVM 层面的实现原理，以及 synchronized 关键字在类似场景的处理手段。首先来看一段简单的 try-finally 代码 1234567publi">
-<meta name="keywords" content="Java,JVM">
+<meta name="keywords" content="JVM,Java">
 <meta property="og:type" content="article">
 <meta property="og:title" content="揭开try-catch-finally的神秘面纱">
 <meta property="og:url" content="http://yoursite.com/2020/05/17/揭开try-catch-finally的神秘面纱/index.html">
@@ -112,7 +112,7 @@
                 
                     
                     
-                    <a class="navbar-item" target="_blank" title="Download on GitHub" href="https://github.com/CoderEugene">
+                    <a class="navbar-item" target="_blank" title="Download on GitHub" href="https://github.com/govzhz">
                         
                         <i class="fab fa-github"></i>
                         
@@ -280,7 +280,7 @@
 
 <div class="card">
     <div class="card-content">
-        <h3 class="title is-5 has-text-weight-normal">Comments</h3>
+        <h3 class="title is-5 has-text-weight-normal">Commentaires</h3>
         
 <div id="comment-container"></div>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1.4.1/dist/gitalk.css">
@@ -290,9 +290,9 @@
         clientID: 'a6ee64392ee1dba6a516',
         clientSecret: '7638214b6ca106a17ff2301358bd4297d6e47773',
         id: '6b4a4bf32be487550c7583ebb1ec7b95',
-        repo: 'CoderEugene.github.io',
-        owner: 'CoderEugene',
-        admin: ["CoderEugene"]
+        repo: 'govzhz.github.io',
+        owner: 'govzhz',
+        admin: ["https://github.com/govzhz"]
     })
     gitalk.render('comment-container')
 </script>
@@ -333,7 +333,7 @@
             <div class="level-item has-text-centered is-marginless">
                 <div>
                     <p class="heading">
-                        Posts
+                        Articles
                     </p>
                     <p class="title has-text-weight-normal">
                         15
@@ -343,7 +343,7 @@
             <div class="level-item has-text-centered is-marginless">
                 <div>
                     <p class="heading">
-                        Categories
+                        Catégories
                     </p>
                     <p class="title has-text-weight-normal">
                         7
@@ -362,14 +362,14 @@
             </div>
         </nav>
         <div class="level">
-            <a class="level-item button is-link is-rounded" href="https://github.com/CoderEugene">
-                Follow</a>
+            <a class="level-item button is-link is-rounded" href="https://github.com/govzhz">
+                SUIVRE</a>
         </div>
         
         
         <div class="level is-mobile">
             
-            <a class="level-item button is-white is-marginless" target="_blank" title="Github" href="https://github.com/CoderEugene">
+            <a class="level-item button is-white is-marginless" target="_blank" title="Github" href="https://github.com/govzhz">
                 
                 <i class="fab fa-github"></i>
                 
@@ -418,7 +418,7 @@
     <div class="card-content">
         <div class="menu">
             <h3 class="menu-label">
-                Categories
+                Catégories
             </h3>
             <ul class="menu-list">
             <li>
@@ -487,7 +487,7 @@
 <div class="card widget">
     <div class="card-content">
         <h3 class="menu-label">
-            Tag Cloud
+            Nuage de tags
         </h3>
         <a href="/tags/DNS/" style="font-size: 10px;">DNS</a> <a href="/tags/HTTP/" style="font-size: 10px;">HTTP</a> <a href="/tags/JVM/" style="font-size: 12.5px;">JVM</a> <a href="/tags/Java/" style="font-size: 20px;">Java</a> <a href="/tags/Mysql/" style="font-size: 10px;">Mysql</a> <a href="/tags/NIO/" style="font-size: 12.5px;">NIO</a> <a href="/tags/Reactor/" style="font-size: 12.5px;">Reactor</a> <a href="/tags/TCP/" style="font-size: 10px;">TCP</a> <a href="/tags/UDP/" style="font-size: 10px;">UDP</a> <a href="/tags/volatile/" style="font-size: 10px;">volatile</a> <a href="/tags/内存屏障/" style="font-size: 10px;">内存屏障</a> <a href="/tags/可见性/" style="font-size: 10px;">可见性</a> <a href="/tags/多线程/" style="font-size: 15px;">多线程</a> <a href="/tags/操作系统/" style="font-size: 10px;">操作系统</a> <a href="/tags/故障排查/" style="font-size: 10px;">故障排查</a> <a href="/tags/最佳实践/" style="font-size: 15px;">最佳实践</a> <a href="/tags/泛型/" style="font-size: 10px;">泛型</a> <a href="/tags/锁/" style="font-size: 17.5px;">锁</a>
     </div>
@@ -665,7 +665,7 @@
                 </p>
                 
                 <p class="control">
-                    <a class="button is-white is-large" target="_blank" title="Download on GitHub" href="https://github.com/CoderEugene">
+                    <a class="button is-white is-large" target="_blank" title="Download on GitHub" href="https://github.com/govzhz">
                         
                         <i class="fab fa-github"></i>
                         
@@ -778,9 +778,9 @@ document.addEventListener('DOMContentLoaded', function () {
     (function (window) {
         var INSIGHT_CONFIG = {
             TRANSLATION: {
-                POSTS: 'Posts',
+                POSTS: 'Articles',
                 PAGES: 'Pages',
-                CATEGORIES: 'Categories',
+                CATEGORIES: 'Catégories',
                 TAGS: 'Tags',
                 UNTITLED: '(Untitled)',
             },
