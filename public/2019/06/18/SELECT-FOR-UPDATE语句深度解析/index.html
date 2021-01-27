@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html>
+<head><meta name="generator" content="Hexo 3.8.0">
+    <meta charset="utf-8">
+<title>SELECT FOR UPDATE语句深度解析 - Mr·Zh</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+
+
+    <meta name="description" content="&amp;emsp;&amp;emsp;Mysql 的 SELECT ... FOR UPDATE 语句是日常使用较多的用于锁定资源，确保在多个事务读取数据时始终能够读取到最新版本的数据的有效语句。那么它是怎么实现呢？在经过官网文档以及大量实践的验证之后发现网上存在大量不严谨甚至错误的信息，因此通过本文对 SELECT FOR UPDATE 语句作出以下总结。在具体介绍之前，先对目前网上教程或博客中会提到的几个常">
+<meta name="keywords" content="Mysql,锁">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SELECT FOR UPDATE语句深度解析">
+<meta property="og:url" content="http://yoursite.com/2019/06/18/SELECT-FOR-UPDATE语句深度解析/index.html">
+<meta property="og:site_name" content="Mr·Zh">
+<meta property="og:description" content="&amp;emsp;&amp;emsp;Mysql 的 SELECT ... FOR UPDATE 语句是日常使用较多的用于锁定资源，确保在多个事务读取数据时始终能够读取到最新版本的数据的有效语句。那么它是怎么实现呢？在经过官网文档以及大量实践的验证之后发现网上存在大量不严谨甚至错误的信息，因此通过本文对 SELECT FOR UPDATE 语句作出以下总结。在具体介绍之前，先对目前网上教程或博客中会提到的几个常">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2020-02-06T05:25:03.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="SELECT FOR UPDATE语句深度解析">
+<meta name="twitter:description" content="&amp;emsp;&amp;emsp;Mysql 的 SELECT ... FOR UPDATE 语句是日常使用较多的用于锁定资源，确保在多个事务读取数据时始终能够读取到最新版本的数据的有效语句。那么它是怎么实现呢？在经过官网文档以及大量实践的验证之后发现网上存在大量不严谨甚至错误的信息，因此通过本文对 SELECT FOR UPDATE 语句作出以下总结。在具体介绍之前，先对目前网上教程或博客中会提到的几个常">
+
+
+
+
+
+<link rel="icon" href="/images/logo.png">
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.7.2/css/bulma.css">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Ubuntu:400,600|Source+Code+Pro">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@9.12.0/styles/atom-one-light.css">
+
+
+    
+    
+    
+    <style>body>.footer,body>.navbar,body>.section{opacity:0}</style>
+    
+
+    
+    
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@1.6.8/dist/css/lightgallery.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/css/justifiedGallery.min.css">
+    
+
+    
+    
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/outdatedbrowser@1.1.5/outdatedbrowser/outdatedbrowser.min.css">
+
+
+    
+    
+    
+    
+
+<link rel="stylesheet" href="/css/back-to-top.css">
+
+
+    
+    
+
+    
+    
+    
+    
+
+    
+    
+<link rel="stylesheet" href="/css/progressbar.css">
+<script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+
+    
+    
+    
+
+    
+
+
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="is-2-column">
+    <nav class="navbar navbar-main">
+    <div class="container">
+        <div class="navbar-brand is-flex-center">
+            <a class="navbar-item navbar-logo" href="/">
+            
+                <img src="/images/logo.png" alt="SELECT FOR UPDATE语句深度解析" height="28">
+            
+            </a>
+        </div>
+        <div class="navbar-menu">
+            
+            <div class="navbar-start">
+                
+                <a class="navbar-item" href="/">Home</a>
+                
+                <a class="navbar-item" href="/archives">Archives</a>
+                
+                <a class="navbar-item" href="/categories">Categories</a>
+                
+                <a class="navbar-item" href="/tags">Tags</a>
+                
+                <a class="navbar-item" href="/about">About</a>
+                
+            </div>
+            
+            <div class="navbar-end">
+                
+                    
+                    
+                    <a class="navbar-item" target="_blank" title="Download on GitHub" href="https://github.com/govzhz">
+                        
+                        <i class="fab fa-github"></i>
+                        
+                    </a>
+                    
+                
+                
+                <a class="navbar-item is-hidden-tablet catalogue" title="Catalogue" href="javascript:;">
+                    <i class="fas fa-list-ul"></i>
+                </a>
+                
+                
+                <a class="navbar-item search" title="Search" href="javascript:;">
+                    <i class="fas fa-search"></i>
+                </a>
+                
+            </div>
+        </div>
+    </div>
+</nav>
+    
+    <section class="section">
+        <div class="container">
+            <div class="columns">
+                <div class="column is-8-tablet is-9-desktop is-9-widescreen has-order-2 column-main"><div class="card">
+    
+    <div class="card-content article ">
+        
+        <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
+            <div class="level-left">
+                <!-- 增加图标 -->
+                <div class="level-item has-text-grey" style="float: left;"> 
+                    <i class="fas fa-calendar-alt"></i>&nbsp;&nbsp; <time class="level-item has-text-grey" datetime="2019-06-18T14:19:04.000Z">2019-06-18</time>
+                </div>
+                
+                <div class="level-item">
+                <i class="fas fa-folder-open"></i>&nbsp;&nbsp;
+                <a class="has-link-grey -link" href="/categories/Mysql/">Mysql</a>
+                </div>
+                
+                
+                <!-- 增加计数和相关图标 -->
+                
+                    <dev class="level-item has-text-grey"><i class="fa fa-eye"></i>&nbsp;&nbsp;Visitors&nbsp;<span id="busuanzi_value_page_pv"></span></dev>
+                
+            </div>
+        </div>
+        
+        <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal" align="center">
+            
+                SELECT FOR UPDATE语句深度解析
+            
+        </h1>
+        <div class="content">
+            <p>&emsp;&emsp;<code>Mysql</code> 的 <code>SELECT ... FOR UPDATE</code> 语句是日常使用较多的用于锁定资源，确保在多个事务读取数据时始终能够读取到最新版本的数据的有效语句。那么它是怎么实现呢？在经过官网文档以及大量实践的验证之后发现网上存在大量不严谨甚至错误的信息，因此通过本文对 <code>SELECT FOR UPDATE</code> 语句作出以下总结。在具体介绍之前，先对目前网上教程或博客中会提到的几个<strong>常见误区</strong>进行纠正：</p>
+<ul>
+<li><p><del><code>SELECT FOR UPDATE</code> 在xx情况下会添加表级锁。</del> </p>
+<p>请注意，<strong>在任何情况下 <code>SELECT FOR UPDATE</code> 都不会添加表级锁。</strong>事实上，在大部分情况下（DQL 语句，DML 语句，DDL 语句）都不会添加表锁，取而代之的是各种类型的行锁。</p>
+<blockquote><p><i class="far fa-bell"></i> </p>
+<p>&emsp;&emsp;那么我们如何获取表锁呢？语句如下：</p>
+<figure class="highlight sql hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">LOCK</span> <span class="hljs-keyword">TABLES</span> xx <span class="hljs-keyword">READ</span>; <span class="hljs-comment"># 为 xx 表添加表级 S 锁</span></span><br><span class="line"><span class="hljs-keyword">LOCK</span> <span class="hljs-keyword">TABLES</span> xx WRITE;  <span class="hljs-comment"># 为 xx 表添加表级 X 锁</span></span><br></pre></td></tr></table></figure>
+
+<p>然后我们可以通过以下语句来检测当前 Mysql 有哪些表获取了表级锁</p>
+<figure class="highlight sql hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">SHOW</span> <span class="hljs-keyword">OPEN</span> <span class="hljs-keyword">TABLES</span> <span class="hljs-keyword">WHERE</span> In_use &gt; <span class="hljs-number">0</span></span><br></pre></td></tr></table></figure>
+
+<p>更多的表级锁相关知识请参考<a href="https://dev.mysql.com/doc/refman/8.0/en/lock-tables.html#table-lock-release" target="_blank" rel="noopener">官网介绍</a></p>
+</blockquote>
+</li>
+<li><p><del><code>SELECT FOR UPDATE</code> 在未使用索引时会”锁表”。</del></p>
+<p><code>SELECT FOR UPDATE</code> 确实可以通过 <code>Next-key lock</code> 锁住所有记录和间隙来实现和表锁类似的效果。但未使用索引并非充分条件，我们判断 <code>SELECT FOR UPDATE</code> 是否锁住了所有数据和间隙还需要看它的隔离级别。</p>
+</li>
+</ul>
+<a id="more"></a>
+<p>那么影响我们判断 <code>SELECT FOR UPDATE</code> 语句持有什么锁的因素有哪些呢？在这里列出以下几点：</p>
+<ul>
+<li>隔离级别（RC/RR）</li>
+<li>执行计划（聚簇索引/唯一索引/二级索引/无索引）</li>
+<li>过滤条件（等值条件/范围条件）</li>
+</ul>
+<p><strong>以下分析内容均建立在已经了解 Mysql 的行级锁的类型和作用范围的基础上，同时列出几点必要的前提论据：</strong></p>
+<ul>
+<li><p>一般情况下，RC 级别是无法使用 <code>Gap Lock</code> 的，但在检查外键约束或者 duplicate key 检查时还是会用到的</p>
+<blockquote><p>Gap locking can be disabled explicitly. This occurs if you change the transaction isolation level to READ COMMITTED. Under these circumstances, gap locking is disabled for searches and index scans and is used only for foreign-key constraint checking and duplicate-key checking.</p>
+<footer><strong>MySQL 8.0 Reference Manual</strong><cite><a href="https://dev.mysql.com/doc/refman/8.0/en/innodb-locking.html" target="_blank" rel="noopener">15.7.1 InnoDB Locking</a></cite></footer></blockquote>
+</li>
+<li><p>一般情况下，执行计划根据某个索引查询后，会将过滤完的记录加锁后返回给 MySQL Server 进行过滤。在 RC 隔离级别下，当记录不满足条件时 MySQL Server 会调用 <code>handler::unlock_row()</code> 告诉存储引擎释放锁（破坏了 2PL 规则），RR 隔离级别下则会保持到事务提交</p>
+<blockquote><p><i class="far fa-bell"></i> </p>
+<ul>
+<li>2PL（<a href="https://en.wikipedia.org/wiki/Two-phase_locking" target="_blank" rel="noopener">两阶段加锁协议</a>）是数据库中保证事务并发的控制方法，即保证多个事务在并发的情况下等同于串行的执行。它将加锁和解锁分为两个阶段。而为了在事务中能够明确的判断什么是加锁阶段，什么是解锁阶段，引入了 S2PL（Strict-2PL），即<strong>在事务中只有提交（commit）或者回滚（rollback）时才是解锁阶段，其余时间为加锁阶段。</strong></li>
+<li><p>ICP（索引条件下推）：是一种减少 server 层和 engine 层之间交互的次数的优化方式。上面提到一般情况下对于根据索引查询返回的记录将交由 MySQL Server 进行过滤，而如果过滤条件是联合索引且无法走联合索引时，如：</p>
+<figure class="highlight sql hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-comment"># 联合索引：(index1, index2, index3)</span></span><br><span class="line"><span class="hljs-comment"># 根据最左匹配原则无法走联合索引</span></span><br><span class="line"><span class="hljs-keyword">select</span> x <span class="hljs-keyword">from</span> xx <span class="hljs-keyword">where</span> index1 = <span class="hljs-string">‘xx’</span> <span class="hljs-keyword">and</span> index3 <span class="hljs-keyword">like</span> <span class="hljs-string">‘%xxxx%’</span></span><br></pre></td></tr></table></figure>
+
+<p>正常情况下在对 index1 进行筛选后的记录就要返回。而经过 ICP 优化，由于 where 的查询列属于该联合索引，那么会将对该 where 条件记录过滤后才返回给 server 层</p>
+</li>
+</ul>
+<p>参考：</p>
+<ul>
+<li><a href="http://hedengcheng.com/?p=771" target="_blank" rel="noopener">MySQL 加锁处理分析</a> </li>
+<li><a href="http://mysql.taobao.org/monthly/2016/01/01/" target="_blank" rel="noopener">MySQL · 引擎特性 · InnoDB 事务锁系统简介</a> </li>
+<li><a href="https://dev.mysql.com/doc/refman/8.0/en/index-condition-pushdown-optimization.html" target="_blank" rel="noopener">MySQL 8.0 Reference Manual  8.2.1.5 Index Condition Pushdown Optimization</a> </li>
+<li><a href="https://bugs.mysql.com/bug.php?id=20390" target="_blank" rel="noopener">SELECT FOR UPDATE does not release locks of untouched rows in full table scans</a></li>
+</ul>
+</blockquote>
+</li>
+</ul>
+<h2 id="RC级别下的SELECT-FOR-UPDATE"><a href="#RC级别下的SELECT-FOR-UPDATE" class="headerlink" title="RC级别下的SELECT FOR UPDATE"></a>RC级别下的SELECT FOR UPDATE</h2><p>虽然 Mysql 默认的事务隔离级别是 RR，但是在大多数互联网应用中 Mysql 的隔离级别会设置为 RC，因此我们也首先讨论 RC 隔离级别下的 <code>SELECT FOR UPDATE</code>。</p>
+<ul>
+<li><p><strong>在执行计划不走索引时，将只会为满足条件的记录添加 <code>Record Lock</code> </strong></p>
+<blockquote>
+<p>执行计划不走索引代表 sql 会走聚簇索引的全扫描，对所有记录加锁后返回给 MySQL Server 进行过滤。过滤过程中不满足条件的记录的锁会被释放，因此最终只锁住了满足条件的记录</p>
+</blockquote>
+</li>
+<li><p><strong>在执行计划走聚簇索引时，将只为满足条件的记录添加 <code>Record Lock</code> </strong></p>
+</li>
+<li><p><strong>在执行计划走唯一索引或二级索引时，将会为满足条件的记录所在的聚簇索引和二级索引添加 <code>Record Lock</code>  </strong></p>
+<blockquote>
+<p>为什么还需要在聚簇索引加锁呢？因为如果不锁聚簇索引意味着别的事务可以使用 <code>update/delete</code>，那么就失去了锁定资源的作用了</p>
+</blockquote>
+</li>
+</ul>
+<p>从上面的分析可以看出，在 RC 级别下任何情况下都不会出现”锁表”效果。但是<strong>请注意即使 <code>SELECT FOR UPDATE</code> 的目标记录没有被锁住，也是有可能造成阻塞的。</strong>原因在于 <em>Mysql 对非索引过滤（即是由 Mysql Server 过滤）的记录加锁返回的过程是不会省略的</em>，因此如果 <code>SELECT FOR UPDATE</code> 不走索引，那么 Mysql 会为聚簇索引的所有数据行尝试添加  <code>Record Lock</code> ，而一旦有任何一行已经被锁定，那么当前查询就会被阻塞。</p>
+<h2 id="RR级别下的SELECT-FOR-UPDATE"><a href="#RR级别下的SELECT-FOR-UPDATE" class="headerlink" title="RR级别下的SELECT FOR UPDATE"></a>RR级别下的SELECT FOR UPDATE</h2><p>Mysql 的 RR 级别为了解决幻读引入了 <code>Gap Lock</code>，这也为 <code>SELECT FOR UPDATE</code> 的加锁增加了很多可能性</p>
+<ul>
+<li><p><strong>在执行计划不走索引时，将会聚簇索引中的所有记录添加 <code>Next-key Lock</code>，相当于”锁表”</strong></p>
+<blockquote>
+<p>RR 级别下非索引过滤的记录即使不符合过滤条件，锁也不会被释放。同时为了解决幻读，记录添加 <code>Next-key Lock</code> 来锁定间隙</p>
+</blockquote>
+</li>
+<li><p><strong>在执行计划走聚簇索引时，若是能够命中的等值查询，将只为满足条件的记录添加 <code>Record Lock</code>；否则将覆盖范围包含过滤范围的记录添加 <code>Next-key Lock</code></strong>。</p>
+<blockquote>
+<p>为什么只有在等值查询是才有可能添加 <code>Record Lock</code> ？因为范围查询内的数据存在幻读问题</p>
+</blockquote>
+</li>
+<li><p><strong>在执行计划走唯一索引时，锁住唯一索引的方式和聚簇索引相似，同时使用 <code>Record Lock</code> 锁住命中的聚簇索引</strong></p>
+<blockquote>
+<p>为什么只需要使用 <code>Record Lock</code> 锁住聚簇索引？因为通过唯一索引可以保证过滤范围间无法插入数据（与插入意向锁互斥），因此只需要 <code>Record Lock</code> 锁来确定目标记录不被 <code>update/delete</code> 即可</p>
+</blockquote>
+</li>
+<li><p><strong>在执行计划走二级索引时，无论是否为等值查询都会为覆盖范围包含过滤范围的记录添加 <code>Next-key</code>，同时使用 <code>Record Lock</code> 锁住命中的聚簇索引</strong></p>
+<blockquote>
+<p>为什么二级索引不区分等值查询呢？因为即使是等值查询也不能唯一定位二级索引中的数据，在一棵二级索引的 B+ 树中，叶子结点由 二级索引列值 + 主键值 确定的，仅仅依靠二级索引列值还是相当于范围查询</p>
+</blockquote>
+</li>
+</ul>
+<h2 id="Serializable下的SELECT-FOR-UPDATE"><a href="#Serializable下的SELECT-FOR-UPDATE" class="headerlink" title="Serializable下的SELECT FOR UPDATE"></a>Serializable下的SELECT FOR UPDATE</h2><p>Serializable 级别下 <code>SELECT FOR UPDATE</code> 的加锁方式基本和RR级别相同。比较特殊的是，Serializable 下是不存在快照读的，即使查询语句不添加 <code>for update</code> 也会为记录添加共享锁</p>
+<h2 id="锁分析工具"><a href="#锁分析工具" class="headerlink" title="锁分析工具"></a>锁分析工具</h2><p>Mysql 提供了语句来查询当前持有锁的状态和类型等等，是验证我们的判断的利器。语句如下：</p>
+<figure class="highlight sql hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">SELECT</span> * <span class="hljs-keyword">FROM</span> performance_schema.data_locks</span><br></pre></td></tr></table></figure>
+<p>它提供几个关键信息：</p>
+<ul>
+<li>LOCK_TYPE：锁类型，<code>RECORD</code> 代表行锁，<code>TABLE</code> 代表表锁</li>
+<li>LOCK_MODE：锁模式，<code>X,REC_NOT_GAP</code> 代表 <code>Record Lock</code> , <code>X, GAP</code> 代表 <code>Gap Lock</code> , <code>X</code> 代表 <code>Next-key Lock</code></li>
+<li>INDEX_NAME：锁定索引的名称</li>
+<li>LOCK_DATA：与锁相关的数据，比如锁在主键上就是主键值</li>
+</ul>
+<p>更多的字段解释参考 <a href="https://dev.mysql.com/doc/refman/8.0/en/data-locks-table.html" target="_blank" rel="noopener">MySQL 8.0 Reference Manual 26.12.12.1 The data_locks Table</a></p>
+<p>除此之外，Mysql 还提供了查询当前正在执行的每个事务（不包括只读事务）的信息，比如隔离级别，内存中此事务的锁结构占用的总大小等等。语句如下：</p>
+<figure class="highlight sql hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">SELECT</span> * <span class="hljs-keyword">FROM</span> INFORMATION_SCHEMA.INNODB_TRX</span><br></pre></td></tr></table></figure>
+<p>它提供几个关键信息：</p>
+<ul>
+<li>TRX_ID：如果是非锁定的只读事务是没有该 id 的</li>
+<li>TRX_REQUESTED_LOCK_ID：当前事务正在等待的锁 id</li>
+<li>TRX_TABLES_LOCKED：当前 SQL 语句具有行锁定的表的数量</li>
+<li>TRX_LOCK_MEMORY_BYTES：内存中此事务的锁结构占用的总大小。</li>
+<li>TRX_ISOLATION_LEVEL：当前事务的隔离级别</li>
+</ul>
+<p>更多的字段解释参考 <a href="https://dev.mysql.com/doc/refman/8.0/en/innodb-trx-table.html" target="_blank" rel="noopener">MySQL 8.0 Reference Manual 25.39.29 The INFORMATION_SCHEMA INNODB_TRX Table</a></p>
+
+        </div>
+        
+        <div class="level is-size-7 is-uppercase">
+            <div class="level-start">
+                <div class="level-item">
+                    <span class="is-size-6 has-text-grey has-mr-7">#</span>
+                    <a class="has-link-grey -link" href="/tags/Mysql/">Mysql</a>, <a class="has-link-grey -link" href="/tags/锁/">锁</a>
+                </div>
+            </div>
+        </div>
+        
+        
+        
+    </div>
+</div>
+
+
+
+
+
+<div class="card card-transparent">
+    <div class="level post-navigation is-flex-wrap is-mobile">
+        
+        <div class="level-start">
+            <a class="level level-item has-link-grey  article-nav-prev" href="/2019/12/06/泛型进阶/">
+                <i class="level-item fas fa-chevron-left"></i>
+                <span class="level-item">泛型进阶</span>
+            </a>
+        </div>
+        
+        
+        <div class="level-end">
+            <a class="level level-item has-link-grey  article-nav-next" href="/2019/02/11/基础同步工具类/">
+                <span class="level-item">基础同步工具类</span>
+                <i class="level-item fas fa-chevron-right"></i>
+            </a>
+        </div>
+        
+    </div>
+</div>
+
+
+
+<div class="card">
+    <div class="card-content">
+        <h3 class="title is-5 has-text-weight-normal">Commentaires</h3>
+        
+<div id="comment-container"></div>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1.4.1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1.4.1/dist/gitalk.min.js"></script>
+<script>
+    var gitalk = new Gitalk({
+        clientID: 'a6ee64392ee1dba6a516',
+        clientSecret: '7638214b6ca106a17ff2301358bd4297d6e47773',
+        id: '2854386d5628acbc66393be94d3f1c1f',
+        repo: 'govzhz.github.io',
+        owner: 'govzhz',
+        admin: ["https://github.com/govzhz"]
+    })
+    gitalk.render('comment-container')
+</script>
+
+    </div>
+</div>
+</div>
+                
+
+
+
+
+<div class="column is-4-tablet is-3-desktop is-3-widescreen  has-order-1 column-left ">
+    
+        
+<div class="card widget">
+    <div class="card-content">
+        <nav class="level">
+            <div class="level-item has-text-centered">
+                <div>
+                    <img class="image is-128x128 has-mb-6" src="/images/avatar.JPG" alt="Mr·Zh">
+                    
+                    <p class="is-size-4 is-block">
+                        Mr·Zh
+                    </p>
+                    
+                    
+                    
+                    <p class="is-size-6 is-flex is-flex-center has-text-grey">
+                        <i class="fas fa-map-marker-alt has-mr-7"></i>
+                        <span>Hangzhou, China</span>
+                    </p>
+                    
+                </div>
+            </div>
+        </nav>
+        <nav class="level is-mobile">
+            <div class="level-item has-text-centered is-marginless">
+                <div>
+                    <p class="heading">
+                        Articles
+                    </p>
+                    <p class="title has-text-weight-normal">
+                        15
+                    </p>
+                </div>
+            </div>
+            <div class="level-item has-text-centered is-marginless">
+                <div>
+                    <p class="heading">
+                        Catégories
+                    </p>
+                    <p class="title has-text-weight-normal">
+                        7
+                    </p>
+                </div>
+            </div>
+            <div class="level-item has-text-centered is-marginless">
+                <div>
+                    <p class="heading">
+                        Tags
+                    </p>
+                    <p class="title has-text-weight-normal">
+                        18
+                    </p>
+                </div>
+            </div>
+        </nav>
+        <div class="level">
+            <a class="level-item button is-link is-rounded" href="https://github.com/govzhz">
+                SUIVRE</a>
+        </div>
+        
+        
+        <div class="level is-mobile">
+            
+            <a class="level-item button is-white is-marginless" target="_blank" title="Github" href="https://github.com/govzhz">
+                
+                <i class="fab fa-github"></i>
+                
+            </a>
+            
+            <a class="level-item button is-white is-marginless" target="_blank" title="Youtube" href="https://www.youtube.com/channel/UCw0q8SAGateu9wq6ERunCNw?view_as=subscriber">
+                
+                <i class="fab fa-youtube"></i>
+                
+            </a>
+            
+            <a class="level-item button is-white is-marginless" target="_blank" title="RSS" href="/atom.xml">
+                
+                <i class="fas fa-rss"></i>
+                
+            </a>
+            
+        </div>
+        
+    </div>
+</div>
+    
+        
+<div class="card widget" id="toc">
+    <div class="card-content">
+        <div class="menu">
+            <h3 class="menu-label">
+                Catalogue
+            </h3>
+            <ul class="menu-list"><li>
+        <a class="is-flex" href="#RC级别下的SELECT-FOR-UPDATE">
+        <span class="has-mr-6">1</span>
+        <span>RC级别下的SELECT FOR UPDATE</span>
+        </a></li><li>
+        <a class="is-flex" href="#RR级别下的SELECT-FOR-UPDATE">
+        <span class="has-mr-6">2</span>
+        <span>RR级别下的SELECT FOR UPDATE</span>
+        </a></li><li>
+        <a class="is-flex" href="#Serializable下的SELECT-FOR-UPDATE">
+        <span class="has-mr-6">3</span>
+        <span>Serializable下的SELECT FOR UPDATE</span>
+        </a></li><li>
+        <a class="is-flex" href="#锁分析工具">
+        <span class="has-mr-6">4</span>
+        <span>锁分析工具</span>
+        </a></li></ul>
+        </div>
+    </div>
+</div>
+
+    
+        
+<div class="card widget">
+    <div class="card-content">
+        <div class="menu">
+            <h3 class="menu-label">
+                Catégories
+            </h3>
+            <ul class="menu-list">
+            <li>
+        <a class="level is-marginless" href="/categories/JUC/">
+            <span class="level-start">
+                <span class="level-item">JUC</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">4</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/JVM/">
+            <span class="level-start">
+                <span class="level-item">JVM</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/Java基础/">
+            <span class="level-start">
+                <span class="level-item">Java基础</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">4</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/Mysql/">
+            <span class="level-start">
+                <span class="level-item">Mysql</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/Netty/">
+            <span class="level-start">
+                <span class="level-item">Netty</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/Tomcat/">
+            <span class="level-start">
+                <span class="level-item">Tomcat</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/计算机通信/">
+            <span class="level-start">
+                <span class="level-item">计算机通信</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">3</span>
+            </span>
+        </a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+    
+        
+<div class="card widget">
+    <div class="card-content">
+        <h3 class="menu-label">
+            Nuage de tags
+        </h3>
+        <a href="/tags/DNS/" style="font-size: 10px;">DNS</a> <a href="/tags/HTTP/" style="font-size: 10px;">HTTP</a> <a href="/tags/JVM/" style="font-size: 12.5px;">JVM</a> <a href="/tags/Java/" style="font-size: 20px;">Java</a> <a href="/tags/Mysql/" style="font-size: 10px;">Mysql</a> <a href="/tags/NIO/" style="font-size: 12.5px;">NIO</a> <a href="/tags/Reactor/" style="font-size: 12.5px;">Reactor</a> <a href="/tags/TCP/" style="font-size: 10px;">TCP</a> <a href="/tags/UDP/" style="font-size: 10px;">UDP</a> <a href="/tags/volatile/" style="font-size: 10px;">volatile</a> <a href="/tags/内存屏障/" style="font-size: 10px;">内存屏障</a> <a href="/tags/可见性/" style="font-size: 10px;">可见性</a> <a href="/tags/多线程/" style="font-size: 15px;">多线程</a> <a href="/tags/操作系统/" style="font-size: 10px;">操作系统</a> <a href="/tags/故障排查/" style="font-size: 10px;">故障排查</a> <a href="/tags/最佳实践/" style="font-size: 15px;">最佳实践</a> <a href="/tags/泛型/" style="font-size: 10px;">泛型</a> <a href="/tags/锁/" style="font-size: 17.5px;">锁</a>
+    </div>
+</div>
+
+    
+        <div class="card widget">
+    <div class="card-content">
+        <div class="menu">
+        <h3 class="menu-label">
+            Archives
+        </h3>
+        <ul class="menu-list">
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2020/09/">
+                <span class="level-start">
+                    <span class="level-item">September 2020</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">1</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2020/08/">
+                <span class="level-start">
+                    <span class="level-item">August 2020</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">2</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2020/07/">
+                <span class="level-start">
+                    <span class="level-item">July 2020</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">1</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2020/05/">
+                <span class="level-start">
+                    <span class="level-item">May 2020</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">2</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2020/02/">
+                <span class="level-start">
+                    <span class="level-item">February 2020</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">1</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/12/">
+                <span class="level-start">
+                    <span class="level-item">December 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">3</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/06/">
+                <span class="level-start">
+                    <span class="level-item">June 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">1</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/02/">
+                <span class="level-start">
+                    <span class="level-item">February 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">1</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/01/">
+                <span class="level-start">
+                    <span class="level-item">January 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">2</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2018/12/">
+                <span class="level-start">
+                    <span class="level-item">December 2018</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">1</span>
+                </span>
+            </a>
+        </li>
+        
+        </ul>
+        </div>
+    </div>
+</div>
+    
+    
+        <div class="column-right-shadow is-hidden-widescreen ">
+        
+        </div>
+    
+</div>
+
+                
+            </div>
+        </div>
+    </section>
+    <footer class="footer">
+    <div class="container">
+        <div class="level">
+            <div class="level-start has-text-centered-mobile">
+                <a class="footer-logo is-block has-mb-6" href="/">
+                
+                    <img src="/images/logo.png" alt="SELECT FOR UPDATE语句深度解析" height="28">
+                
+                </a>
+                <p class="is-size-7">
+                &copy; 2020 Mr·Zh&nbsp;
+                <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+				&nbsp;<i class="far fa-eye"></i>&nbsp;PV&nbsp;&nbsp;<span id="busuanzi_value_site_pv"></span>&nbsp;&nbsp;&nbsp;<i class="fa fa-user-md"></i>&nbsp;UV&nbsp;&nbsp;<span id="busuanzi_value_site_uv"></span>
+                </p>
+            </div>
+            <div class="level-end">
+            
+                <div class="field has-addons is-flex-center-mobile has-mt-5-mobile is-flex-wrap is-flex-middle">
+                
+                
+                <p class="control">
+                    <a class="button is-white is-large" target="_blank" title="Creative Commons" href="https://creativecommons.org/">
+                        
+                        <i class="fab fa-creative-commons"></i>
+                        
+                    </a>
+                </p>
+                
+                <p class="control">
+                    <a class="button is-white is-large" target="_blank" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/">
+                        
+                        <i class="fab fa-creative-commons-by"></i>
+                        
+                    </a>
+                </p>
+                
+                <p class="control">
+                    <a class="button is-white is-large" target="_blank" title="Download on GitHub" href="https://github.com/govzhz">
+                        
+                        <i class="fab fa-github"></i>
+                        
+                    </a>
+                </p>
+                
+                </div>
+            
+            </div>
+        </div>
+    </div>
+</footer>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/moment@2.22.2/min/moment-with-locales.min.js"></script>
+<script>moment.locale("en");</script>
+
+
+    
+    
+    
+    <script src="/js/animation.js"></script>
+    
+
+    
+    
+    
+    <script src="https://cdn.jsdelivr.net/npm/lightgallery@1.6.8/dist/js/lightgallery.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js" defer></script>
+    <script src="/js/gallery.js" defer></script>
+    
+
+    
+    
+
+<div id="outdated">
+    <h6>Your browser is out-of-date!</h6>
+    <p>Update your browser to view this website correctly. <a id="btnUpdateBrowser" href="http://outdatedbrowser.com/">Update
+            my browser now </a></p>
+    <p class="last"><a href="#" id="btnCloseUpdateBrowser" title="Close">&times;</a></p>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/outdatedbrowser@1.1.5/outdatedbrowser/outdatedbrowser.min.js" defer></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        outdatedBrowser({
+            bgColor: '#f25648',
+            color: '#ffffff',
+            lowerThan: 'flex'
+        });
+    });
+</script>
+
+
+    
+    
+<script src="https://cdn.jsdelivr.net/npm/mathjax@2.7.5/unpacked/MathJax.js?config=TeX-MML-AM_CHTML" defer></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    MathJax.Hub.Config({
+        'HTML-CSS': {matchFontHeight: false},
+        SVG: {matchFontHeight: false},
+        CommonHTML: {matchFontHeight: false}
+    });
+});
+</script>
+
+    
+    
+
+<a id="back-to-top" title="Back to Top" href="javascript:;">
+    <i class="fas fa-chevron-up"></i>
+</a>
+<script src="/js/back-to-top.js" defer></script>
+
+
+    
+    
+
+    
+    
+    
+    
+
+    
+    
+    
+    
+    
+    <script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.4/dist/clipboard.min.js" defer></script>
+    <script src="/js/clipboard.js" defer></script>
+    
+
+    
+
+
+<script src="/js/main.js" defer></script>
+
+    
+    <div class="searchbox ins-search">
+    <div class="searchbox-container ins-search-container">
+        <div class="searchbox-input-wrapper">
+            <input type="text" class="searchbox-input ins-search-input" placeholder="Type something...">
+            <span class="searchbox-close ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="searchbox-result-wrapper ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+    (function (window) {
+        var INSIGHT_CONFIG = {
+            TRANSLATION: {
+                POSTS: 'Articles',
+                PAGES: 'Pages',
+                CATEGORIES: 'Catégories',
+                TAGS: 'Tags',
+                UNTITLED: '(Untitled)',
+            },
+            CONTENT_URL: '/content.json',
+        };
+        window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+    })(window);
+</script>
+<script src="/js/insight.js" defer></script>
+<link rel="stylesheet" href="/css/search.css">
+<link rel="stylesheet" href="/css/insight.css">
+    
+</body>
+</html>

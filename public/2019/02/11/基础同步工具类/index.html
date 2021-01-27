@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html>
+<head><meta name="generator" content="Hexo 3.8.0">
+    <meta charset="utf-8">
+<title>基础同步工具类 - Mr·Zh</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+
+
+    <meta name="description" content="Semaphore，CountDownLatch，CyclicBarrier 均是 JDK1.5 提供的基础并发工具：  Semaphore 是一个计数信号量，用于限制同时访问某个特定资源的数量 CountDownLatch 是一个闭锁，允许一个或多个线程等待一组其他线程执行完成后执行，但只能使用一次 CyclicBarrier 是一个循环栅栏，通过它可以实现让一组线程等待至某个状态之后再全部同时">
+<meta name="keywords" content="锁,Java,多线程">
+<meta property="og:type" content="article">
+<meta property="og:title" content="基础同步工具类">
+<meta property="og:url" content="http://yoursite.com/2019/02/11/基础同步工具类/index.html">
+<meta property="og:site_name" content="Mr·Zh">
+<meta property="og:description" content="Semaphore，CountDownLatch，CyclicBarrier 均是 JDK1.5 提供的基础并发工具：  Semaphore 是一个计数信号量，用于限制同时访问某个特定资源的数量 CountDownLatch 是一个闭锁，允许一个或多个线程等待一组其他线程执行完成后执行，但只能使用一次 CyclicBarrier 是一个循环栅栏，通过它可以实现让一组线程等待至某个状态之后再全部同时">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2020-02-06T03:58:09.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="基础同步工具类">
+<meta name="twitter:description" content="Semaphore，CountDownLatch，CyclicBarrier 均是 JDK1.5 提供的基础并发工具：  Semaphore 是一个计数信号量，用于限制同时访问某个特定资源的数量 CountDownLatch 是一个闭锁，允许一个或多个线程等待一组其他线程执行完成后执行，但只能使用一次 CyclicBarrier 是一个循环栅栏，通过它可以实现让一组线程等待至某个状态之后再全部同时">
+
+
+
+
+
+<link rel="icon" href="/images/logo.png">
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.7.2/css/bulma.css">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Ubuntu:400,600|Source+Code+Pro">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@9.12.0/styles/atom-one-light.css">
+
+
+    
+    
+    
+    <style>body>.footer,body>.navbar,body>.section{opacity:0}</style>
+    
+
+    
+    
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@1.6.8/dist/css/lightgallery.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/css/justifiedGallery.min.css">
+    
+
+    
+    
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/outdatedbrowser@1.1.5/outdatedbrowser/outdatedbrowser.min.css">
+
+
+    
+    
+    
+    
+
+<link rel="stylesheet" href="/css/back-to-top.css">
+
+
+    
+    
+
+    
+    
+    
+    
+
+    
+    
+<link rel="stylesheet" href="/css/progressbar.css">
+<script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+
+    
+    
+    
+
+    
+
+
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="is-2-column">
+    <nav class="navbar navbar-main">
+    <div class="container">
+        <div class="navbar-brand is-flex-center">
+            <a class="navbar-item navbar-logo" href="/">
+            
+                <img src="/images/logo.png" alt="基础同步工具类" height="28">
+            
+            </a>
+        </div>
+        <div class="navbar-menu">
+            
+            <div class="navbar-start">
+                
+                <a class="navbar-item" href="/">Home</a>
+                
+                <a class="navbar-item" href="/archives">Archives</a>
+                
+                <a class="navbar-item" href="/categories">Categories</a>
+                
+                <a class="navbar-item" href="/tags">Tags</a>
+                
+                <a class="navbar-item" href="/about">About</a>
+                
+            </div>
+            
+            <div class="navbar-end">
+                
+                    
+                    
+                    <a class="navbar-item" target="_blank" title="Download on GitHub" href="https://github.com/govzhz">
+                        
+                        <i class="fab fa-github"></i>
+                        
+                    </a>
+                    
+                
+                
+                <a class="navbar-item is-hidden-tablet catalogue" title="Catalogue" href="javascript:;">
+                    <i class="fas fa-list-ul"></i>
+                </a>
+                
+                
+                <a class="navbar-item search" title="Search" href="javascript:;">
+                    <i class="fas fa-search"></i>
+                </a>
+                
+            </div>
+        </div>
+    </div>
+</nav>
+    
+    <section class="section">
+        <div class="container">
+            <div class="columns">
+                <div class="column is-8-tablet is-9-desktop is-9-widescreen has-order-2 column-main"><div class="card">
+    
+    <div class="card-content article ">
+        
+        <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
+            <div class="level-left">
+                <!-- 增加图标 -->
+                <div class="level-item has-text-grey" style="float: left;"> 
+                    <i class="fas fa-calendar-alt"></i>&nbsp;&nbsp; <time class="level-item has-text-grey" datetime="2019-02-11T13:14:39.000Z">2019-02-11</time>
+                </div>
+                
+                <div class="level-item">
+                <i class="fas fa-folder-open"></i>&nbsp;&nbsp;
+                <a class="has-link-grey -link" href="/categories/JUC/">JUC</a>
+                </div>
+                
+                
+                <!-- 增加计数和相关图标 -->
+                
+                    <dev class="level-item has-text-grey"><i class="fa fa-eye"></i>&nbsp;&nbsp;Visitors&nbsp;<span id="busuanzi_value_page_pv"></span></dev>
+                
+            </div>
+        </div>
+        
+        <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal" align="center">
+            
+                基础同步工具类
+            
+        </h1>
+        <div class="content">
+            <p>Semaphore，CountDownLatch，CyclicBarrier 均是 JDK1.5 提供的基础并发工具：</p>
+<ul>
+<li>Semaphore 是一个计数信号量，用于限制同时访问某个特定资源的数量</li>
+<li>CountDownLatch 是一个闭锁，允许一个或多个线程等待一组其他线程执行完成后执行，但只能使用一次</li>
+<li>CyclicBarrier 是一个循环栅栏，通过它可以实现让一组线程等待至某个状态之后再全部同时执行，并且支持重复使用</li>
+</ul>
+<h2 id="Semaphore"><a href="#Semaphore" class="headerlink" title="Semaphore"></a>Semaphore</h2><figure class="highlight java hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">X</span></span>&#123;</span><br><span class="line">    </span><br><span class="line">    Random random = <span class="hljs-keyword">new</span> Random();</span><br><span class="line">    </span><br><span class="line">    Semaphore semaphore = <span class="hljs-keyword">new</span> Semaphore(<span class="hljs-number">10</span>, <span class="hljs-keyword">true</span>);</span><br><span class="line"></span><br><span class="line">    <span class="hljs-comment">// 方法本身控制同步</span></span><br><span class="line">    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">synchronized</span> Integer <span class="hljs-title">getNextAvailableItem</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> InterruptedException </span>&#123;</span><br><span class="line">        </span><br><span class="line">        <span class="hljs-comment">// 信号量控制访问次数</span></span><br><span class="line">        semaphore.acquire();</span><br><span class="line">        </span><br><span class="line">        <span class="hljs-keyword">return</span> random.nextInt();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">synchronized</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">markAsUnused</span><span class="hljs-params">(Integer item)</span></span>&#123;</span><br><span class="line">        </span><br><span class="line">        <span class="hljs-comment">// do something</span></span><br><span class="line">        </span><br><span class="line">        semaphore.release();</span><br><span class="line">        </span><br><span class="line">        <span class="hljs-keyword">return</span> <span class="hljs-keyword">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这是 Semaphore 的一个标准的使用方式，用于控制流量。上述程序创建了一个允许 10 个线程同时访问的信号量，并且使用公平锁（一般来说用于控制流量的使用需要使用公平模式，用于防止线程饥饿），然后在提供获取资源的接口 getNextAvailableItem 方法前先获取凭证，在释放资源后释放凭证。<strong>但是注意 Semaphore 不保证并发正确性，这需要接口自己保证，因此这里使用 synchronized 来提醒这一点。</strong></p>
+<a id="more"></a>
+<h3 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h3><p>Semaphore 默认使用非公平锁，也可以显示的设置使用公平锁</p>
+<figure class="highlight java hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">Semaphore</span><span class="hljs-params">(<span class="hljs-keyword">int</span> permits)</span> </span>&#123;</span><br><span class="line">    sync = <span class="hljs-keyword">new</span> NonfairSync(permits);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">Semaphore</span><span class="hljs-params">(<span class="hljs-keyword">int</span> permits, <span class="hljs-keyword">boolean</span> fair)</span> </span>&#123;</span><br><span class="line">    sync = fair ? <span class="hljs-keyword">new</span> FairSync(permits) : <span class="hljs-keyword">new</span> NonfairSync(permits);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>公平锁 FairSync 和非公平锁 NonfairSync 均继承于内部类 Sync，而 Sync 继承 AQS（AbstractQueuedSynchronizer）锁。获取锁和释放锁均在 Sycn 中实现</p>
+<figure class="highlight java hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">acquire</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> InterruptedException </span>&#123;</span><br><span class="line">    sync.acquireSharedInterruptibly(<span class="hljs-number">1</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">acquireUninterruptibly</span><span class="hljs-params">()</span> </span>&#123;</span><br><span class="line">    sync.acquireShared(<span class="hljs-number">1</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">release</span><span class="hljs-params">()</span> </span>&#123;</span><br><span class="line">    sync.releaseShared(<span class="hljs-number">1</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="acquire"><a href="#acquire" class="headerlink" title="acquire"></a>acquire</h3><p>acquire 在获取非公平锁的实现底层核心方法为 nonfairTryAcquireShared</p>
+<figure class="highlight java hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-function"><span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> <span class="hljs-title">nonfairTryAcquireShared</span><span class="hljs-params">(<span class="hljs-keyword">int</span> acquires)</span> </span>&#123;</span><br><span class="line">    <span class="hljs-keyword">for</span> (;;) &#123;</span><br><span class="line">        <span class="hljs-keyword">int</span> available = getState();</span><br><span class="line">        <span class="hljs-keyword">int</span> remaining = available - acquires;</span><br><span class="line">        <span class="hljs-keyword">if</span> (remaining &lt; <span class="hljs-number">0</span> ||</span><br><span class="line">            compareAndSetState(available, remaining))</span><br><span class="line">            <span class="hljs-keyword">return</span> remaining;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Semaphore 在初始化的时候会将 state 设为凭证数，在每次获取锁时 nonfairTryAcquireShared 会将 state - 1 直到 state 为 0，当 state 为 0 时则代表不可以再获取共享锁了。在具体实现上，这是一个标准的子类获取共享锁的实现模式。它本质是一个共享锁，会允许多个线程同时进入，因此在之前的使用介绍也提到了 Semaphore 不能确保并发正确性。</p>
+<figure class="highlight java hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">int</span> <span class="hljs-title">tryAcquireShared</span><span class="hljs-params">(<span class="hljs-keyword">int</span> acquires)</span> </span>&#123;</span><br><span class="line">    <span class="hljs-keyword">for</span> (;;) &#123;</span><br><span class="line">        <span class="hljs-keyword">if</span> (hasQueuedPredecessors())</span><br><span class="line">            <span class="hljs-keyword">return</span> -<span class="hljs-number">1</span>;</span><br><span class="line">        <span class="hljs-keyword">int</span> available = getState();</span><br><span class="line">        <span class="hljs-keyword">int</span> remaining = available - acquires;</span><br><span class="line">        <span class="hljs-keyword">if</span> (remaining &lt; <span class="hljs-number">0</span> ||</span><br><span class="line">            compareAndSetState(available, remaining))</span><br><span class="line">            <span class="hljs-keyword">return</span> remaining;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>而对于公平模式的获取锁和 ReentrantLock 的实现相同，会先调用 hasQueuedPredecessors 来判断当前线程是否位于等待队列中的第一个，仅在处于队列的第一个时才会尝试获取锁，从而保证了获取锁的先后顺序。</p>
+<p>还需要注意的是，无论是公平锁还是非公平锁，Semaphore 的acquire 是调用的 acquireSharedInterruptibly，因此它是可中断的</p>
+<figure class="highlight java hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">acquire</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> InterruptedException </span>&#123;</span><br><span class="line">    sync.acquireSharedInterruptibly(<span class="hljs-number">1</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如果需要使用不支持中断的，可以使用 acquireUninterruptibly</p>
+<figure class="highlight java hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">acquireUninterruptibly</span><span class="hljs-params">()</span> </span>&#123;</span><br><span class="line">    sync.acquireShared(<span class="hljs-number">1</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="release"><a href="#release" class="headerlink" title="release"></a>release</h3><figure class="highlight java hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">release</span><span class="hljs-params">()</span> </span>&#123;</span><br><span class="line">    sync.releaseShared(<span class="hljs-number">1</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">tryReleaseShared</span><span class="hljs-params">(<span class="hljs-keyword">int</span> releases)</span> </span>&#123;</span><br><span class="line">    <span class="hljs-keyword">for</span> (;;) &#123;</span><br><span class="line">        <span class="hljs-keyword">int</span> current = getState();</span><br><span class="line">        <span class="hljs-keyword">int</span> next = current + releases;</span><br><span class="line">        <span class="hljs-keyword">if</span> (next &lt; current) <span class="hljs-comment">// overflow</span></span><br><span class="line">            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> Error(<span class="hljs-string">"Maximum permit count exceeded"</span>);</span><br><span class="line">        <span class="hljs-keyword">if</span> (compareAndSetState(current, next))</span><br><span class="line">            <span class="hljs-keyword">return</span> <span class="hljs-keyword">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>实际上就是调用 AQS 的释放共享锁的方法，那么本质上尝试释放锁就是通过重载 tryReleaseShared 实现的。因为共享锁的释放锁是存在并发的，所以需要通过 CAS 自旋更新 state 状态，每次释放都会将 state + 1。这也是一个标准的子类释放共享锁的实现模式。因此我们也要警惕使用 release，因为它会导致当前 state 大于凭证数，意味着如果释放次数大于获取次数会导致同时允许的线程数大于凭证数。</p>
+<blockquote>
+<i class="far fa-bell"></i> 
+<p>&emsp;&emsp;There is no requirement that a thread that releases a permit must have acquired that permit by calling acquire(). Correct usage of a semaphore is established by programming convention in the application.</p>
+<p>&emsp;&emsp;没有要求释放许可证的线程必须先通过调用 acquire() 获得该许可证。通过应用程序中的编程约定来建立信号量的正确使用。</p>
+</blockquote>
+<h3 id="应用"><a href="#应用" class="headerlink" title="应用"></a>应用</h3><p>了解了 Semaphore 原理后，这里通过 Semaphore 实现一个线程池只能同时执行两个任务的例子</p>
+<figure class="highlight java hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">import</span> java.util.concurrent.*;</span><br><span class="line"><span class="hljs-keyword">import</span> java.util.concurrent.atomic.AtomicInteger;</span><br><span class="line"><span class="hljs-keyword">import</span> java.util.concurrent.locks.ReentrantLock;</span><br><span class="line"></span><br><span class="line"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Main</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="hljs-keyword">final</span> Semaphore semaphore = <span class="hljs-keyword">new</span> Semaphore(<span class="hljs-number">2</span>, <span class="hljs-keyword">true</span>);</span><br><span class="line">        </span><br><span class="line">        AtomicInteger count = <span class="hljs-keyword">new</span> AtomicInteger(<span class="hljs-number">0</span>);</span><br><span class="line"></span><br><span class="line">        ExecutorService executorService = <span class="hljs-keyword">new</span> ThreadPoolExecutor(</span><br><span class="line">                <span class="hljs-number">5</span>, <span class="hljs-number">5</span>, <span class="hljs-number">60</span>, TimeUnit.SECONDS,</span><br><span class="line">                <span class="hljs-keyword">new</span> ArrayBlockingQueue&lt;Runnable&gt;(<span class="hljs-number">100</span>),</span><br><span class="line">                <span class="hljs-keyword">new</span> ThreadPoolExecutor.DiscardOldestPolicy()</span><br><span class="line">        );</span><br><span class="line"></span><br><span class="line">        <span class="hljs-keyword">int</span> threadCnt = <span class="hljs-number">10</span>;</span><br><span class="line">        <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; threadCnt; i++) &#123;</span><br><span class="line"></span><br><span class="line">            executorService.execute(<span class="hljs-keyword">new</span> Task(semaphore, count));</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        executorService.shutdown();</span><br><span class="line"></span><br><span class="line">        <span class="hljs-keyword">try</span> &#123;</span><br><span class="line">            executorService.awaitTermination(<span class="hljs-number">1</span>, TimeUnit.DAYS);</span><br><span class="line">        &#125; <span class="hljs-keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Task</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">Runnable</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="hljs-keyword">private</span> Semaphore semaphore;</span><br><span class="line"></span><br><span class="line">    <span class="hljs-keyword">private</span> AtomicInteger count;</span><br><span class="line"></span><br><span class="line">    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">Task</span><span class="hljs-params">(Semaphore semaphore, AtomicInteger count)</span> </span>&#123;</span><br><span class="line">        <span class="hljs-keyword">this</span>.semaphore = semaphore;</span><br><span class="line">        <span class="hljs-keyword">this</span>.count = count;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="hljs-meta">@Override</span></span><br><span class="line">    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">run</span><span class="hljs-params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="hljs-keyword">try</span> &#123;</span><br><span class="line"></span><br><span class="line">            semaphore.acquire();</span><br><span class="line">        &#125; <span class="hljs-keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line"></span><br><span class="line">            System.out.println(<span class="hljs-string">"Semaphore 中断 "</span> + Thread.currentThread().getName());</span><br><span class="line"></span><br><span class="line">            <span class="hljs-keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="hljs-keyword">try</span> &#123;</span><br><span class="line"></span><br><span class="line">            doIt();</span><br><span class="line">        &#125; <span class="hljs-keyword">finally</span> &#123;</span><br><span class="line"></span><br><span class="line">            semaphore.release();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title">doIt</span><span class="hljs-params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        System.out.println(Thread.currentThread().getName() + <span class="hljs-string">": is running ["</span> + count.addAndGet(<span class="hljs-number">1</span>) + <span class="hljs-string">"]"</span>);</span><br><span class="line"></span><br><span class="line">        <span class="hljs-keyword">try</span> &#123;</span><br><span class="line"></span><br><span class="line">            Thread.sleep((<span class="hljs-keyword">int</span>)(<span class="hljs-number">1</span> + (Math.random() * <span class="hljs-number">3</span>)));</span><br><span class="line"></span><br><span class="line">        &#125; <span class="hljs-keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125; <span class="hljs-keyword">finally</span> &#123;</span><br><span class="line"></span><br><span class="line">            count.decrementAndGet();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Task 任务会在执行前先获取信号量，并对同时在运行的任务进行计数，在执行完任务后会重置计数并释放信号量。在实现过程中需要注意两个重要的点，也是实际使用时需要注意的点：</p>
+<ol>
+<li>doIt 执行任务本身需要保证并发安全，所以 count 使用 Atomic 类。</li>
+<li>Semaphore 的 acquire 和 release 不要在同一个 try 中，否则当 acquire 获取失败时仍然会执行 release，而 release并不控制凭证数，这会导致有可能产生比设置时更大的 state</li>
+</ol>
+<p>在这个案例中，正常结果打印出来的同时运行的线程数不会超过 2，比如：</p>
+<figure class="highlight plain hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">pool-1-thread-2: is running [2]</span><br><span class="line">pool-1-thread-1: is running [1]</span><br><span class="line">pool-1-thread-3: is running [2]</span><br><span class="line">pool-1-thread-4: is running [2]</span><br><span class="line">pool-1-thread-2: is running [1]</span><br><span class="line">pool-1-thread-5: is running [2]</span><br><span class="line">pool-1-thread-1: is running [2]</span><br><span class="line">pool-1-thread-3: is running [1]</span><br><span class="line">pool-1-thread-4: is running [2]</span><br><span class="line">pool-1-thread-5: is running [2]</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p><i class="far fa-bell"></i>   重点回顾</p>
+<ul>
+<li>Semaphore 底层通过 AQS 共享锁实现，支持公平/非公平模式</li>
+<li>Semaphore 应用场景主要用于控制流量</li>
+<li>Semaphore 并不保证并发正确性，需要接口本身保证</li>
+<li>Semaphore 的 release 释放次数大于 acquire 获取次数时会导致并发数大于凭证数，因此这需要由调用者正确控制</li>
+</ul>
+</blockquote>
+<h2 id="CountDownLatch"><a href="#CountDownLatch" class="headerlink" title="CountDownLatch"></a>CountDownLatch</h2><figure class="highlight java hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">import</span> java.util.concurrent.*;</span><br><span class="line"></span><br><span class="line"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Main</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="hljs-keyword">int</span> threadCnt = <span class="hljs-number">10</span>;</span><br><span class="line"></span><br><span class="line">        CountDownLatch startSignle = <span class="hljs-keyword">new</span> CountDownLatch(<span class="hljs-number">1</span>);</span><br><span class="line"></span><br><span class="line">        CountDownLatch doneSignle = <span class="hljs-keyword">new</span> CountDownLatch(threadCnt);</span><br><span class="line"></span><br><span class="line">        ExecutorService executorService = <span class="hljs-keyword">new</span> ThreadPoolExecutor(</span><br><span class="line">                <span class="hljs-number">5</span>, <span class="hljs-number">5</span>, <span class="hljs-number">60</span>, TimeUnit.SECONDS,</span><br><span class="line">                <span class="hljs-keyword">new</span> ArrayBlockingQueue&lt;Runnable&gt;(<span class="hljs-number">100</span>),</span><br><span class="line">                <span class="hljs-keyword">new</span> ThreadPoolExecutor.DiscardOldestPolicy()</span><br><span class="line">        );</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">        <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; threadCnt; i++) &#123;</span><br><span class="line"></span><br><span class="line">            executorService.execute(<span class="hljs-keyword">new</span> Task(startSignle, doneSignle));</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        System.out.println(<span class="hljs-string">"All task start."</span>);</span><br><span class="line"></span><br><span class="line">        startSignle.countDown();</span><br><span class="line"></span><br><span class="line">        <span class="hljs-keyword">try</span> &#123;</span><br><span class="line">            doneSignle.await();</span><br><span class="line">        &#125; <span class="hljs-keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        System.out.println(<span class="hljs-string">"All task done."</span>);</span><br><span class="line"></span><br><span class="line">        executorService.shutdown();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Task</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">Runnable</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="hljs-keyword">private</span> CountDownLatch startSignle;</span><br><span class="line"></span><br><span class="line">    <span class="hljs-keyword">private</span> CountDownLatch doneSignle;</span><br><span class="line"></span><br><span class="line">    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">Task</span><span class="hljs-params">(CountDownLatch startSignle, CountDownLatch doneSignle)</span> </span>&#123;</span><br><span class="line">        <span class="hljs-keyword">this</span>.startSignle = startSignle;</span><br><span class="line">        <span class="hljs-keyword">this</span>.doneSignle = doneSignle;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="hljs-meta">@Override</span></span><br><span class="line">    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">run</span><span class="hljs-params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="hljs-keyword">try</span> &#123;</span><br><span class="line"></span><br><span class="line">            startSignle.await();</span><br><span class="line"></span><br><span class="line">            System.out.println(Thread.currentThread().getName() + <span class="hljs-string">" is running"</span>);</span><br><span class="line"></span><br><span class="line">            Thread.sleep(<span class="hljs-number">2000</span>);</span><br><span class="line"></span><br><span class="line">        &#125; <span class="hljs-keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125; <span class="hljs-keyword">finally</span> &#123;</span><br><span class="line"></span><br><span class="line">            doneSignle.countDown();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>上述程序创建了两个分别用于启动和结束的 CountDownLatch，startSignle 用于所有子线程等待主线程发送执行的信号，doneSignle 用于主线程等待所有子线程完成的信号。正常结果如下：</p>
+<figure class="highlight plain hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">All task start.</span><br><span class="line">pool-1-thread-2 is running</span><br><span class="line">pool-1-thread-3 is running</span><br><span class="line">pool-1-thread-4 is running</span><br><span class="line">pool-1-thread-1 is running</span><br><span class="line">pool-1-thread-5 is running</span><br><span class="line">pool-1-thread-4 is running</span><br><span class="line">pool-1-thread-1 is running</span><br><span class="line">pool-1-thread-2 is running</span><br><span class="line">pool-1-thread-5 is running</span><br><span class="line">pool-1-thread-3 is running</span><br><span class="line">All task done.</span><br></pre></td></tr></table></figure>
+<h3 id="简介-1"><a href="#简介-1" class="headerlink" title="简介"></a>简介</h3><p>CountDownLatch 的构造函数只有一个参数，用于控制 await 线程被执行前必须先执行线程的个数</p>
+<figure class="highlight java hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">CountDownLatch</span><span class="hljs-params">(<span class="hljs-keyword">int</span> count)</span> </span>&#123;</span><br><span class="line">    <span class="hljs-keyword">if</span> (count &lt; <span class="hljs-number">0</span>) <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> IllegalArgumentException(<span class="hljs-string">"count &lt; 0"</span>);</span><br><span class="line">    <span class="hljs-keyword">this</span>.sync = <span class="hljs-keyword">new</span> Sync(count);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>Sync 继承 AQS（AbstractQueuedSynchronizer）锁，因此 CountDownLatch 也是基于 AQS 的一个实现</p>
+<figure class="highlight java hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">await</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> InterruptedException </span>&#123;</span><br><span class="line">    sync.acquireSharedInterruptibly(<span class="hljs-number">1</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">countDown</span><span class="hljs-params">()</span> </span>&#123;</span><br><span class="line">    sync.releaseShared(<span class="hljs-number">1</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>await 调用的 acquireSharedInterruptibly 意味着它支持中断</p>
+<h3 id="await"><a href="#await" class="headerlink" title="await"></a>await</h3><figure class="highlight java hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">int</span> <span class="hljs-title">tryAcquireShared</span><span class="hljs-params">(<span class="hljs-keyword">int</span> acquires)</span> </span>&#123;</span><br><span class="line">    <span class="hljs-keyword">return</span> (getState() == <span class="hljs-number">0</span>) ? <span class="hljs-number">1</span> : -<span class="hljs-number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>await 的获取共享锁的方式和之前所说的 Semaphore 的实现对 state 的处理是完全相反的：</p>
+<ul>
+<li>在 Semaphore 中是在 state 大于 0 时允许获取锁</li>
+<li>在 CountDownLatch 中是在 state = 0 时允许获取锁</li>
+</ul>
+<p>这很好理解，await 的线程需要在 N 个线程执行 countDown 后才允许被唤醒，和 Semaphore 的逻辑正好相反。</p>
+<h3 id="countDown"><a href="#countDown" class="headerlink" title="countDown"></a>countDown</h3><figure class="highlight java hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-function"><span class="hljs-keyword">protected</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">tryReleaseShared</span><span class="hljs-params">(<span class="hljs-keyword">int</span> releases)</span> </span>&#123;</span><br><span class="line">    <span class="hljs-comment">// Decrement count; signal when transition to zero</span></span><br><span class="line">    <span class="hljs-keyword">for</span> (;;) &#123;</span><br><span class="line">        <span class="hljs-keyword">int</span> c = getState();</span><br><span class="line">        <span class="hljs-keyword">if</span> (c == <span class="hljs-number">0</span>)</span><br><span class="line">            <span class="hljs-keyword">return</span> <span class="hljs-keyword">false</span>;</span><br><span class="line">        <span class="hljs-keyword">int</span> nextc = c-<span class="hljs-number">1</span>;</span><br><span class="line">        <span class="hljs-keyword">if</span> (compareAndSetState(c, nextc))</span><br><span class="line">            <span class="hljs-keyword">return</span> nextc == <span class="hljs-number">0</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>countDown 本质上就是释放共享锁，每次执行会将 state - 1 直到 0。在释放到 state = 0 后不会再释放。这就说明了两个问题：</p>
+<ul>
+<li>即使执行 countDown 的次数大于初始化时设置的 count 值也是不会有问题的，因为 releaseShared 会直接返回释放失败。</li>
+<li>即使先执行 countDown，只要执行到足够的次数，再执行 await 也能成功获取到锁。</li>
+</ul>
+<blockquote>
+<i class="far fa-bell"></i> 
+<p>&emsp;&emsp;为什么 await 方法获取锁成功是返回 1，而不是 0 呢？</p>
+<p>&emsp;&emsp;这是因为在 AQS 中，释放共享锁后会唤醒后继结点，而后续的唤醒则依赖于获取锁的线程的传播式向后唤醒结点，而这依赖于 tryAcquireShared 的返回结果，当返回 0 时会被 AQS 认为无剩余共享资源导致无法唤醒后续结点。那么这就会导致最后一个 countDown 执行完后无法唤醒所有由 await 阻塞的线程</p>
+</blockquote>
+<p>最后那么我们来模拟多个线程等待多个线程执行完成后唤醒的过程：假设 A, B 两个线程等待 m, n 线程执行完成才能执行，而 A, B 先于 m, n 执行</p>
+<ol>
+<li>A 线程调用 await，因为 state 为 2 进入 AQS 等待队列，为头结点</li>
+<li>B 线程调用 await，因为 state 为 2 进入 AQS 等待队列，插入队尾</li>
+<li>m 线程调用 countDown，将 state 设为 1，释放锁成功，尝试唤醒 A，A 尝试获取锁但因为 state != 0，唤醒失败</li>
+<li>n 线程调用 countDown，将 state 设为 0，释放锁成功，尝试唤醒 A，A 尝试获取锁因为 state = 0，A 唤醒成功</li>
+<li>A 获取锁成功返回 1 允许传播式尝试唤醒 B，B 尝试获取锁因为 state = 0，B 唤醒成功</li>
+</ol>
+<blockquote>
+<p><i class="far fa-bell"></i>   重点回顾</p>
+<ul>
+<li>CountDownLatch 底层通过 AQS 共享锁实现</li>
+<li>CountDownLatch 的应用场景为一个或多个线程等待一组其他线程执行完成后执行</li>
+<li>CountDownLatch 的 countDown 次数大于初始化时设置的 count 值时会抛出异常</li>
+<li>CountDownLatch 的 countDown 方法可以先于 await 方法先执行</li>
+</ul>
+</blockquote>
+<h2 id="CyclicBarrier"><a href="#CyclicBarrier" class="headerlink" title="CyclicBarrier"></a>CyclicBarrier</h2><figure class="highlight java hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">import</span> java.util.concurrent.*;</span><br><span class="line"><span class="hljs-keyword">import</span> java.util.concurrent.atomic.AtomicInteger;</span><br><span class="line"></span><br><span class="line"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Main</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title">main</span><span class="hljs-params">(String[] args)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="hljs-keyword">int</span> threadCnt = <span class="hljs-number">5</span>;</span><br><span class="line"></span><br><span class="line">        CyclicBarrier cyclicBarrier = <span class="hljs-keyword">new</span> CyclicBarrier(threadCnt);</span><br><span class="line"></span><br><span class="line">        AtomicInteger count = <span class="hljs-keyword">new</span> AtomicInteger(<span class="hljs-number">0</span>);</span><br><span class="line"></span><br><span class="line">        ExecutorService executorService = <span class="hljs-keyword">new</span> ThreadPoolExecutor(</span><br><span class="line">                <span class="hljs-number">5</span>, <span class="hljs-number">10</span>, <span class="hljs-number">60</span>, TimeUnit.SECONDS,</span><br><span class="line">                <span class="hljs-keyword">new</span> ArrayBlockingQueue&lt;Runnable&gt;(<span class="hljs-number">100</span>),</span><br><span class="line">                <span class="hljs-keyword">new</span> ThreadPoolExecutor.DiscardOldestPolicy()</span><br><span class="line">        );</span><br><span class="line"></span><br><span class="line">        <span class="hljs-keyword">for</span> (<span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>; i &lt; threadCnt; i++) &#123;</span><br><span class="line"></span><br><span class="line">            executorService.execute(<span class="hljs-keyword">new</span> Task(cyclicBarrier, threadCnt * <span class="hljs-number">2</span>, count));</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        executorService.shutdown();</span><br><span class="line"></span><br><span class="line">        <span class="hljs-keyword">try</span> &#123;</span><br><span class="line">            executorService.awaitTermination(<span class="hljs-number">1</span>, TimeUnit.DAYS);</span><br><span class="line">        &#125; <span class="hljs-keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        System.out.println(<span class="hljs-string">"All tasks done."</span>);</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">Task</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">Runnable</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="hljs-keyword">private</span> CyclicBarrier cyclicBarrier;</span><br><span class="line"></span><br><span class="line">    <span class="hljs-keyword">private</span> AtomicInteger count;</span><br><span class="line"></span><br><span class="line">    <span class="hljs-keyword">private</span> Integer taskCnt;</span><br><span class="line"></span><br><span class="line">    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">Task</span><span class="hljs-params">(CyclicBarrier cyclicBarrier, Integer taskCnt, AtomicInteger count)</span> </span>&#123;</span><br><span class="line">        <span class="hljs-keyword">this</span>.cyclicBarrier = cyclicBarrier;</span><br><span class="line">        <span class="hljs-keyword">this</span>.taskCnt = taskCnt;</span><br><span class="line">        <span class="hljs-keyword">this</span>.count = count;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="hljs-meta">@Override</span></span><br><span class="line">    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">run</span><span class="hljs-params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="hljs-keyword">try</span> &#123;</span><br><span class="line"></span><br><span class="line">            <span class="hljs-keyword">while</span> (!isDone())&#123;</span><br><span class="line"></span><br><span class="line">                System.out.println(Thread.currentThread().getName() + <span class="hljs-string">" starts."</span>);</span><br><span class="line"></span><br><span class="line">                Thread.sleep(<span class="hljs-number">2000</span>);</span><br><span class="line"></span><br><span class="line">                count.addAndGet(<span class="hljs-number">1</span>);</span><br><span class="line"></span><br><span class="line">                System.out.println(Thread.currentThread().getName() + <span class="hljs-string">" is waiting."</span>);</span><br><span class="line"></span><br><span class="line">                cyclicBarrier.await();</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            System.out.println(Thread.currentThread().getName() + <span class="hljs-string">" quit."</span>);</span><br><span class="line"></span><br><span class="line">        &#125; <span class="hljs-keyword">catch</span> (InterruptedException | BrokenBarrierException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">boolean</span> <span class="hljs-title">isDone</span><span class="hljs-params">()</span></span>&#123;</span><br><span class="line">        <span class="hljs-keyword">return</span> taskCnt.equals(count.get());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>上述程序创建了一个需要 5 个线程到达后每个线程才能执行后续流程的循环栅栏 CyclicBarrier。每个任务执行完毕后会将 count + 1 以及通过 await 等待其他线程完成。而每个线程完成所有任务的标志是 count = 10，因此在前 5 个执行完成后又会重复的执行一轮，最后全部线程退出。正常结果如下：</p>
+<figure class="highlight plain hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line">pool-1-thread-2 starts.</span><br><span class="line">pool-1-thread-5 starts.</span><br><span class="line">pool-1-thread-4 starts.</span><br><span class="line">pool-1-thread-3 starts.</span><br><span class="line">pool-1-thread-1 starts.</span><br><span class="line">pool-1-thread-5 is waiting.</span><br><span class="line">pool-1-thread-4 is waiting.</span><br><span class="line">pool-1-thread-3 is waiting.</span><br><span class="line">pool-1-thread-1 is waiting.</span><br><span class="line">pool-1-thread-2 is waiting.</span><br><span class="line">pool-1-thread-2 starts.</span><br><span class="line">pool-1-thread-5 starts.</span><br><span class="line">pool-1-thread-4 starts.</span><br><span class="line">pool-1-thread-3 starts.</span><br><span class="line">pool-1-thread-1 starts.</span><br><span class="line">pool-1-thread-4 is waiting.</span><br><span class="line">pool-1-thread-1 is waiting.</span><br><span class="line">pool-1-thread-5 is waiting.</span><br><span class="line">pool-1-thread-3 is waiting.</span><br><span class="line">pool-1-thread-2 is waiting.</span><br><span class="line">pool-1-thread-2 quit.</span><br><span class="line">pool-1-thread-4 quit.</span><br><span class="line">pool-1-thread-3 quit.</span><br><span class="line">pool-1-thread-1 quit.</span><br><span class="line">pool-1-thread-5 quit.</span><br><span class="line">All tasks done.</span><br></pre></td></tr></table></figure>
+<blockquote>
+<i class="far fa-bell"></i> 
+<p>&emsp;&emsp;CyclicBarrier 结合线程池使用需要注意死锁问题，当线程池可执行线程数小于 CyclicBarrier 触发栅栏的线程时会产生死锁</p>
+</blockquote>
+<h3 id="简介-2"><a href="#简介-2" class="headerlink" title="简介"></a>简介</h3><p>CyclicBarrier 存在两个构造函数，parties 用于执行在触发栅栏之前需要执行的线程数，barrierAction 为触发栅栏的线程首先执行该任务后才会唤醒所有等待的线程</p>
+<figure class="highlight java hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">CyclicBarrier</span><span class="hljs-params">(<span class="hljs-keyword">int</span> parties, Runnable barrierAction)</span> </span>&#123;</span><br><span class="line">    <span class="hljs-keyword">if</span> (parties &lt;= <span class="hljs-number">0</span>) <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> IllegalArgumentException();</span><br><span class="line">    <span class="hljs-keyword">this</span>.parties = parties;</span><br><span class="line">    <span class="hljs-keyword">this</span>.count = parties;</span><br><span class="line">    <span class="hljs-keyword">this</span>.barrierCommand = barrierAction;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">CyclicBarrier</span><span class="hljs-params">(<span class="hljs-keyword">int</span> parties)</span> </span>&#123;</span><br><span class="line">    <span class="hljs-keyword">this</span>(parties, <span class="hljs-keyword">null</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="await-1"><a href="#await-1" class="headerlink" title="await"></a>await</h3><figure class="highlight java hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">int</span> <span class="hljs-title">await</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> InterruptedException, BrokenBarrierException </span>&#123;</span><br><span class="line">    <span class="hljs-keyword">try</span> &#123;</span><br><span class="line">        <span class="hljs-keyword">return</span> dowait(<span class="hljs-keyword">false</span>, <span class="hljs-number">0L</span>);</span><br><span class="line">    &#125; <span class="hljs-keyword">catch</span> (TimeoutException toe) &#123;</span><br><span class="line">        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> Error(toe); <span class="hljs-comment">// cannot happen</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-keyword">int</span> <span class="hljs-title">dowait</span><span class="hljs-params">(<span class="hljs-keyword">boolean</span> timed, <span class="hljs-keyword">long</span> nanos)</span></span></span><br><span class="line"><span class="hljs-function">    <span class="hljs-keyword">throws</span> InterruptedException, BrokenBarrierException,</span></span><br><span class="line"><span class="hljs-function">           TimeoutException </span>&#123;</span><br><span class="line">    <span class="hljs-keyword">final</span> ReentrantLock lock = <span class="hljs-keyword">this</span>.lock;</span><br><span class="line">    lock.lock();</span><br><span class="line">    <span class="hljs-keyword">try</span> &#123;</span><br><span class="line">        <span class="hljs-comment">// 当前代</span></span><br><span class="line">        <span class="hljs-keyword">final</span> Generation g = generation;</span><br><span class="line"></span><br><span class="line">        <span class="hljs-keyword">if</span> (g.broken)</span><br><span class="line">            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> BrokenBarrierException();</span><br><span class="line"></span><br><span class="line">        <span class="hljs-keyword">if</span> (Thread.interrupted()) &#123;</span><br><span class="line">            breakBarrier();</span><br><span class="line">            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> InterruptedException();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="hljs-keyword">int</span> index = --count;</span><br><span class="line">        <span class="hljs-comment">// 当index=0时代表触发栅栏</span></span><br><span class="line">        <span class="hljs-keyword">if</span> (index == <span class="hljs-number">0</span>) &#123;  <span class="hljs-comment">// tripped</span></span><br><span class="line">            <span class="hljs-keyword">boolean</span> ranAction = <span class="hljs-keyword">false</span>;</span><br><span class="line">            <span class="hljs-keyword">try</span> &#123;</span><br><span class="line">                <span class="hljs-comment">// 首先执行传入的任务</span></span><br><span class="line">                <span class="hljs-keyword">final</span> Runnable command = barrierCommand;</span><br><span class="line">                <span class="hljs-keyword">if</span> (command != <span class="hljs-keyword">null</span>)</span><br><span class="line">                    command.run();</span><br><span class="line">                ranAction = <span class="hljs-keyword">true</span>;</span><br><span class="line">                <span class="hljs-comment">// 然后更新代，唤醒所有等待线程</span></span><br><span class="line">                nextGeneration();</span><br><span class="line">                <span class="hljs-keyword">return</span> <span class="hljs-number">0</span>;</span><br><span class="line">            &#125; <span class="hljs-keyword">finally</span> &#123;</span><br><span class="line">                <span class="hljs-keyword">if</span> (!ranAction)</span><br><span class="line">                    breakBarrier();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        </span><br><span class="line">        <span class="hljs-comment">// 如果还没触发栅栏，则阻塞</span></span><br><span class="line">        <span class="hljs-comment">// loop until tripped, broken, interrupted, or timed out</span></span><br><span class="line">        <span class="hljs-keyword">for</span> (;;) &#123;</span><br><span class="line">            <span class="hljs-keyword">try</span> &#123;</span><br><span class="line">                <span class="hljs-comment">// 如果未设置超时时间，则直接阻塞</span></span><br><span class="line">                <span class="hljs-keyword">if</span> (!timed)</span><br><span class="line">                    trip.await();</span><br><span class="line">                <span class="hljs-comment">// 否则对阻塞设置超时时间</span></span><br><span class="line">                <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (nanos &gt; <span class="hljs-number">0L</span>)</span><br><span class="line">                    nanos = trip.awaitNanos(nanos);</span><br><span class="line">            &#125; <span class="hljs-keyword">catch</span> (InterruptedException ie) &#123;</span><br><span class="line">                <span class="hljs-keyword">if</span> (g == generation &amp;&amp; ! g.broken) &#123;</span><br><span class="line">                    breakBarrier();</span><br><span class="line">                    <span class="hljs-keyword">throw</span> ie;</span><br><span class="line">                &#125; <span class="hljs-keyword">else</span> &#123;</span><br><span class="line">                    <span class="hljs-comment">// We're about to finish waiting even if we had not</span></span><br><span class="line">                    <span class="hljs-comment">// been interrupted, so this interrupt is deemed to</span></span><br><span class="line">                    <span class="hljs-comment">// "belong" to subsequent execution.</span></span><br><span class="line">                    Thread.currentThread().interrupt();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="hljs-keyword">if</span> (g.broken)</span><br><span class="line">                <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> BrokenBarrierException();</span><br><span class="line"></span><br><span class="line">            <span class="hljs-keyword">if</span> (g != generation)</span><br><span class="line">                <span class="hljs-keyword">return</span> index;</span><br><span class="line"></span><br><span class="line">            <span class="hljs-keyword">if</span> (timed &amp;&amp; nanos &lt;= <span class="hljs-number">0L</span>) &#123;</span><br><span class="line">                breakBarrier();</span><br><span class="line">                <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> TimeoutException();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="hljs-keyword">finally</span> &#123;</span><br><span class="line">        lock.unlock();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>CyclicBarrier 是一个可以循环使用的栅栏，因此它有一个“代”的概念，即每个在触发栅栏之前需要执行的线程数为一代，每执行一次任务则会将需要执行的线程数减一直到 0，这时候就进入了新的一代，即新的循环。 await 实际上通过 ReentrantLock + Condition 完成线程的阻塞和唤醒：</p>
+<ol>
+<li><p>判断当前线程在当前代中的位置，如果还不能触发栅栏，则调用 condition.await/awaitNanos 对当前线程进行阻塞</p>
+</li>
+<li><p>如果一个线程触发了栅栏，首先执行传入的 Runnable 任务，然后唤醒所有等待的任务，再更新代</p>
+</li>
+<li><p>每个被唤醒的线程检查当前代是否已经更新，如果已经更新，则返回在阻塞时还剩余需要执行的线程数。因此  <code>barrier.await() == 0</code>  时意味着当前代需要执行的最后一个线程已完成，可以做些一轮任务做完需要做的工作，比如整合，日志等</p>
+<figure class="highlight java hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-keyword">if</span> (barrier.await() == <span class="hljs-number">0</span>) &#123;</span><br><span class="line">    <span class="hljs-comment">// log the completion of this iteration</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>但是它和 barrierAction 还是有些区别，barrierAction 中执行的内容会在唤醒其他线程前执行（新代执行前），而 <code>barrier.await() == 0</code> 内执行的内容则是在唤醒其他线程后执行的（有可能新代已经开始执行），因此在使用时需要多加考虑</p>
+</li>
+</ol>
+<blockquote>
+<i class="far fa-bell"></i> 
+<p>&emsp;&emsp;CountDownLatch 和 CyclicBarrier 比较相似，都是多个线程相互等待后执行，但它们还是有比较大的区别：</p>
+<ol>
+<li>从实现来看，CountDownLatch 使用的是共享锁，所以一次 countDown 能唤醒所有 await 等待的线程；而 CyclicBarrier 使用的互斥锁 + Condition 的方式，由调用 await 触发栅栏的线程来唤醒一个代中的所有线程（signAll）</li>
+<li>从功能来看，CountDownLatch 只允许使用一次，而 CyclicBarrier 允许循环使用</li>
+<li>从应用来看，CountDownLatch 适用于一个或多个线程等待一组线程执行完成后执行，比如初始化；而 CyclicBarrier 适合用于一组线程相互之间等待，达到一个共同点，再继续执行。比如并行计算，计算中涉及多个子任务阶段式完成任务</li>
+</ol>
+</blockquote>
+
+        </div>
+        
+        <div class="level is-size-7 is-uppercase">
+            <div class="level-start">
+                <div class="level-item">
+                    <span class="is-size-6 has-text-grey has-mr-7">#</span>
+                    <a class="has-link-grey -link" href="/tags/Java/">Java</a>, <a class="has-link-grey -link" href="/tags/多线程/">多线程</a>, <a class="has-link-grey -link" href="/tags/锁/">锁</a>
+                </div>
+            </div>
+        </div>
+        
+        
+        
+    </div>
+</div>
+
+
+
+
+
+<div class="card card-transparent">
+    <div class="level post-navigation is-flex-wrap is-mobile">
+        
+        <div class="level-start">
+            <a class="level level-item has-link-grey  article-nav-prev" href="/2019/06/18/SELECT-FOR-UPDATE语句深度解析/">
+                <i class="level-item fas fa-chevron-left"></i>
+                <span class="level-item">SELECT FOR UPDATE语句深度解析</span>
+            </a>
+        </div>
+        
+        
+        <div class="level-end">
+            <a class="level level-item has-link-grey  article-nav-next" href="/2019/01/14/ReentrantLock/">
+                <span class="level-item">ReentrantLock</span>
+                <i class="level-item fas fa-chevron-right"></i>
+            </a>
+        </div>
+        
+    </div>
+</div>
+
+
+
+<div class="card">
+    <div class="card-content">
+        <h3 class="title is-5 has-text-weight-normal">Commentaires</h3>
+        
+<div id="comment-container"></div>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1.4.1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1.4.1/dist/gitalk.min.js"></script>
+<script>
+    var gitalk = new Gitalk({
+        clientID: 'a6ee64392ee1dba6a516',
+        clientSecret: '7638214b6ca106a17ff2301358bd4297d6e47773',
+        id: '7f88e169f7d966599157f4e345839638',
+        repo: 'govzhz.github.io',
+        owner: 'govzhz',
+        admin: ["https://github.com/govzhz"]
+    })
+    gitalk.render('comment-container')
+</script>
+
+    </div>
+</div>
+</div>
+                
+
+
+
+
+<div class="column is-4-tablet is-3-desktop is-3-widescreen  has-order-1 column-left ">
+    
+        
+<div class="card widget">
+    <div class="card-content">
+        <nav class="level">
+            <div class="level-item has-text-centered">
+                <div>
+                    <img class="image is-128x128 has-mb-6" src="/images/avatar.JPG" alt="Mr·Zh">
+                    
+                    <p class="is-size-4 is-block">
+                        Mr·Zh
+                    </p>
+                    
+                    
+                    
+                    <p class="is-size-6 is-flex is-flex-center has-text-grey">
+                        <i class="fas fa-map-marker-alt has-mr-7"></i>
+                        <span>Hangzhou, China</span>
+                    </p>
+                    
+                </div>
+            </div>
+        </nav>
+        <nav class="level is-mobile">
+            <div class="level-item has-text-centered is-marginless">
+                <div>
+                    <p class="heading">
+                        Articles
+                    </p>
+                    <p class="title has-text-weight-normal">
+                        15
+                    </p>
+                </div>
+            </div>
+            <div class="level-item has-text-centered is-marginless">
+                <div>
+                    <p class="heading">
+                        Catégories
+                    </p>
+                    <p class="title has-text-weight-normal">
+                        7
+                    </p>
+                </div>
+            </div>
+            <div class="level-item has-text-centered is-marginless">
+                <div>
+                    <p class="heading">
+                        Tags
+                    </p>
+                    <p class="title has-text-weight-normal">
+                        18
+                    </p>
+                </div>
+            </div>
+        </nav>
+        <div class="level">
+            <a class="level-item button is-link is-rounded" href="https://github.com/govzhz">
+                SUIVRE</a>
+        </div>
+        
+        
+        <div class="level is-mobile">
+            
+            <a class="level-item button is-white is-marginless" target="_blank" title="Github" href="https://github.com/govzhz">
+                
+                <i class="fab fa-github"></i>
+                
+            </a>
+            
+            <a class="level-item button is-white is-marginless" target="_blank" title="Youtube" href="https://www.youtube.com/channel/UCw0q8SAGateu9wq6ERunCNw?view_as=subscriber">
+                
+                <i class="fab fa-youtube"></i>
+                
+            </a>
+            
+            <a class="level-item button is-white is-marginless" target="_blank" title="RSS" href="/atom.xml">
+                
+                <i class="fas fa-rss"></i>
+                
+            </a>
+            
+        </div>
+        
+    </div>
+</div>
+    
+        
+<div class="card widget" id="toc">
+    <div class="card-content">
+        <div class="menu">
+            <h3 class="menu-label">
+                Catalogue
+            </h3>
+            <ul class="menu-list"><li>
+        <a class="is-flex" href="#Semaphore">
+        <span class="has-mr-6">1</span>
+        <span>Semaphore</span>
+        </a><ul class="menu-list"><li>
+        <a class="is-flex" href="#简介">
+        <span class="has-mr-6">1.1</span>
+        <span>简介</span>
+        </a></li><li>
+        <a class="is-flex" href="#acquire">
+        <span class="has-mr-6">1.2</span>
+        <span>acquire</span>
+        </a></li><li>
+        <a class="is-flex" href="#release">
+        <span class="has-mr-6">1.3</span>
+        <span>release</span>
+        </a></li><li>
+        <a class="is-flex" href="#应用">
+        <span class="has-mr-6">1.4</span>
+        <span>应用</span>
+        </a></li></ul></li><li>
+        <a class="is-flex" href="#CountDownLatch">
+        <span class="has-mr-6">2</span>
+        <span>CountDownLatch</span>
+        </a><ul class="menu-list"><li>
+        <a class="is-flex" href="#简介-1">
+        <span class="has-mr-6">2.1</span>
+        <span>简介</span>
+        </a></li><li>
+        <a class="is-flex" href="#await">
+        <span class="has-mr-6">2.2</span>
+        <span>await</span>
+        </a></li><li>
+        <a class="is-flex" href="#countDown">
+        <span class="has-mr-6">2.3</span>
+        <span>countDown</span>
+        </a></li></ul></li><li>
+        <a class="is-flex" href="#CyclicBarrier">
+        <span class="has-mr-6">3</span>
+        <span>CyclicBarrier</span>
+        </a><ul class="menu-list"><li>
+        <a class="is-flex" href="#简介-2">
+        <span class="has-mr-6">3.1</span>
+        <span>简介</span>
+        </a></li><li>
+        <a class="is-flex" href="#await-1">
+        <span class="has-mr-6">3.2</span>
+        <span>await</span>
+        </a></li></ul></li></ul>
+        </div>
+    </div>
+</div>
+
+    
+        
+<div class="card widget">
+    <div class="card-content">
+        <div class="menu">
+            <h3 class="menu-label">
+                Catégories
+            </h3>
+            <ul class="menu-list">
+            <li>
+        <a class="level is-marginless" href="/categories/JUC/">
+            <span class="level-start">
+                <span class="level-item">JUC</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">4</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/JVM/">
+            <span class="level-start">
+                <span class="level-item">JVM</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/Java基础/">
+            <span class="level-start">
+                <span class="level-item">Java基础</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">4</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/Mysql/">
+            <span class="level-start">
+                <span class="level-item">Mysql</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/Netty/">
+            <span class="level-start">
+                <span class="level-item">Netty</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/Tomcat/">
+            <span class="level-start">
+                <span class="level-item">Tomcat</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/计算机通信/">
+            <span class="level-start">
+                <span class="level-item">计算机通信</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">3</span>
+            </span>
+        </a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+    
+        
+<div class="card widget">
+    <div class="card-content">
+        <h3 class="menu-label">
+            Nuage de tags
+        </h3>
+        <a href="/tags/DNS/" style="font-size: 10px;">DNS</a> <a href="/tags/HTTP/" style="font-size: 10px;">HTTP</a> <a href="/tags/JVM/" style="font-size: 12.5px;">JVM</a> <a href="/tags/Java/" style="font-size: 20px;">Java</a> <a href="/tags/Mysql/" style="font-size: 10px;">Mysql</a> <a href="/tags/NIO/" style="font-size: 12.5px;">NIO</a> <a href="/tags/Reactor/" style="font-size: 12.5px;">Reactor</a> <a href="/tags/TCP/" style="font-size: 10px;">TCP</a> <a href="/tags/UDP/" style="font-size: 10px;">UDP</a> <a href="/tags/volatile/" style="font-size: 10px;">volatile</a> <a href="/tags/内存屏障/" style="font-size: 10px;">内存屏障</a> <a href="/tags/可见性/" style="font-size: 10px;">可见性</a> <a href="/tags/多线程/" style="font-size: 15px;">多线程</a> <a href="/tags/操作系统/" style="font-size: 10px;">操作系统</a> <a href="/tags/故障排查/" style="font-size: 10px;">故障排查</a> <a href="/tags/最佳实践/" style="font-size: 15px;">最佳实践</a> <a href="/tags/泛型/" style="font-size: 10px;">泛型</a> <a href="/tags/锁/" style="font-size: 17.5px;">锁</a>
+    </div>
+</div>
+
+    
+        <div class="card widget">
+    <div class="card-content">
+        <div class="menu">
+        <h3 class="menu-label">
+            Archives
+        </h3>
+        <ul class="menu-list">
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2020/09/">
+                <span class="level-start">
+                    <span class="level-item">September 2020</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">1</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2020/08/">
+                <span class="level-start">
+                    <span class="level-item">August 2020</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">2</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2020/07/">
+                <span class="level-start">
+                    <span class="level-item">July 2020</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">1</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2020/05/">
+                <span class="level-start">
+                    <span class="level-item">May 2020</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">2</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2020/02/">
+                <span class="level-start">
+                    <span class="level-item">February 2020</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">1</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/12/">
+                <span class="level-start">
+                    <span class="level-item">December 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">3</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/06/">
+                <span class="level-start">
+                    <span class="level-item">June 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">1</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/02/">
+                <span class="level-start">
+                    <span class="level-item">February 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">1</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/01/">
+                <span class="level-start">
+                    <span class="level-item">January 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">2</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2018/12/">
+                <span class="level-start">
+                    <span class="level-item">December 2018</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">1</span>
+                </span>
+            </a>
+        </li>
+        
+        </ul>
+        </div>
+    </div>
+</div>
+    
+    
+        <div class="column-right-shadow is-hidden-widescreen ">
+        
+        </div>
+    
+</div>
+
+                
+            </div>
+        </div>
+    </section>
+    <footer class="footer">
+    <div class="container">
+        <div class="level">
+            <div class="level-start has-text-centered-mobile">
+                <a class="footer-logo is-block has-mb-6" href="/">
+                
+                    <img src="/images/logo.png" alt="基础同步工具类" height="28">
+                
+                </a>
+                <p class="is-size-7">
+                &copy; 2020 Mr·Zh&nbsp;
+                <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+				&nbsp;<i class="far fa-eye"></i>&nbsp;PV&nbsp;&nbsp;<span id="busuanzi_value_site_pv"></span>&nbsp;&nbsp;&nbsp;<i class="fa fa-user-md"></i>&nbsp;UV&nbsp;&nbsp;<span id="busuanzi_value_site_uv"></span>
+                </p>
+            </div>
+            <div class="level-end">
+            
+                <div class="field has-addons is-flex-center-mobile has-mt-5-mobile is-flex-wrap is-flex-middle">
+                
+                
+                <p class="control">
+                    <a class="button is-white is-large" target="_blank" title="Creative Commons" href="https://creativecommons.org/">
+                        
+                        <i class="fab fa-creative-commons"></i>
+                        
+                    </a>
+                </p>
+                
+                <p class="control">
+                    <a class="button is-white is-large" target="_blank" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/">
+                        
+                        <i class="fab fa-creative-commons-by"></i>
+                        
+                    </a>
+                </p>
+                
+                <p class="control">
+                    <a class="button is-white is-large" target="_blank" title="Download on GitHub" href="https://github.com/govzhz">
+                        
+                        <i class="fab fa-github"></i>
+                        
+                    </a>
+                </p>
+                
+                </div>
+            
+            </div>
+        </div>
+    </div>
+</footer>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/moment@2.22.2/min/moment-with-locales.min.js"></script>
+<script>moment.locale("en");</script>
+
+
+    
+    
+    
+    <script src="/js/animation.js"></script>
+    
+
+    
+    
+    
+    <script src="https://cdn.jsdelivr.net/npm/lightgallery@1.6.8/dist/js/lightgallery.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js" defer></script>
+    <script src="/js/gallery.js" defer></script>
+    
+
+    
+    
+
+<div id="outdated">
+    <h6>Your browser is out-of-date!</h6>
+    <p>Update your browser to view this website correctly. <a id="btnUpdateBrowser" href="http://outdatedbrowser.com/">Update
+            my browser now </a></p>
+    <p class="last"><a href="#" id="btnCloseUpdateBrowser" title="Close">&times;</a></p>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/outdatedbrowser@1.1.5/outdatedbrowser/outdatedbrowser.min.js" defer></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        outdatedBrowser({
+            bgColor: '#f25648',
+            color: '#ffffff',
+            lowerThan: 'flex'
+        });
+    });
+</script>
+
+
+    
+    
+<script src="https://cdn.jsdelivr.net/npm/mathjax@2.7.5/unpacked/MathJax.js?config=TeX-MML-AM_CHTML" defer></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    MathJax.Hub.Config({
+        'HTML-CSS': {matchFontHeight: false},
+        SVG: {matchFontHeight: false},
+        CommonHTML: {matchFontHeight: false}
+    });
+});
+</script>
+
+    
+    
+
+<a id="back-to-top" title="Back to Top" href="javascript:;">
+    <i class="fas fa-chevron-up"></i>
+</a>
+<script src="/js/back-to-top.js" defer></script>
+
+
+    
+    
+
+    
+    
+    
+    
+
+    
+    
+    
+    
+    
+    <script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.4/dist/clipboard.min.js" defer></script>
+    <script src="/js/clipboard.js" defer></script>
+    
+
+    
+
+
+<script src="/js/main.js" defer></script>
+
+    
+    <div class="searchbox ins-search">
+    <div class="searchbox-container ins-search-container">
+        <div class="searchbox-input-wrapper">
+            <input type="text" class="searchbox-input ins-search-input" placeholder="Type something...">
+            <span class="searchbox-close ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="searchbox-result-wrapper ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+    (function (window) {
+        var INSIGHT_CONFIG = {
+            TRANSLATION: {
+                POSTS: 'Articles',
+                PAGES: 'Pages',
+                CATEGORIES: 'Catégories',
+                TAGS: 'Tags',
+                UNTITLED: '(Untitled)',
+            },
+            CONTENT_URL: '/content.json',
+        };
+        window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+    })(window);
+</script>
+<script src="/js/insight.js" defer></script>
+<link rel="stylesheet" href="/css/search.css">
+<link rel="stylesheet" href="/css/insight.css">
+    
+</body>
+</html>

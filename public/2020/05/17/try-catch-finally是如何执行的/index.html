@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html>
+<head><meta name="generator" content="Hexo 3.8.0">
+    <meta charset="utf-8">
+<title>try-catch-finally是如何执行的 - Mr·Zh</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+
+
+    <meta name="description" content="根据 JDK Tutorial 的描述，除非在执行 try 或 catch 代码时线程被中断或 JVM 退出，finally 中的逻辑始终会执行。因此 finally 关键字常被用于释放资源，防止程序出现异常时出现资源泄露。本文主要探讨其在 JVM 层面的实现原理，以及 synchronized 关键字在类似场景的处理手段。首先来看一段简单的 try-finally 代码 1234567publi">
+<meta name="keywords" content="Java,JVM">
+<meta property="og:type" content="article">
+<meta property="og:title" content="try-catch-finally是如何执行的">
+<meta property="og:url" content="http://yoursite.com/2020/05/17/try-catch-finally是如何执行的/index.html">
+<meta property="og:site_name" content="Mr·Zh">
+<meta property="og:description" content="根据 JDK Tutorial 的描述，除非在执行 try 或 catch 代码时线程被中断或 JVM 退出，finally 中的逻辑始终会执行。因此 finally 关键字常被用于释放资源，防止程序出现异常时出现资源泄露。本文主要探讨其在 JVM 层面的实现原理，以及 synchronized 关键字在类似场景的处理手段。首先来看一段简单的 try-finally 代码 1234567publi">
+<meta property="og:locale" content="default">
+<meta property="og:updated_time" content="2020-05-17T15:22:01.250Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="try-catch-finally是如何执行的">
+<meta name="twitter:description" content="根据 JDK Tutorial 的描述，除非在执行 try 或 catch 代码时线程被中断或 JVM 退出，finally 中的逻辑始终会执行。因此 finally 关键字常被用于释放资源，防止程序出现异常时出现资源泄露。本文主要探讨其在 JVM 层面的实现原理，以及 synchronized 关键字在类似场景的处理手段。首先来看一段简单的 try-finally 代码 1234567publi">
+
+
+
+
+
+<link rel="icon" href="/images/logo.png">
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.7.2/css/bulma.css">
+<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Ubuntu:400,600|Source+Code+Pro">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@9.12.0/styles/atom-one-light.css">
+
+
+    
+    
+    
+    <style>body>.footer,body>.navbar,body>.section{opacity:0}</style>
+    
+
+    
+    
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@1.6.8/dist/css/lightgallery.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/css/justifiedGallery.min.css">
+    
+
+    
+    
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/outdatedbrowser@1.1.5/outdatedbrowser/outdatedbrowser.min.css">
+
+
+    
+    
+    
+    
+
+<link rel="stylesheet" href="/css/back-to-top.css">
+
+
+    
+    
+
+    
+    
+    
+    
+
+    
+    
+<link rel="stylesheet" href="/css/progressbar.css">
+<script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+
+    
+    
+    
+
+    
+
+
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="is-2-column">
+    <nav class="navbar navbar-main">
+    <div class="container">
+        <div class="navbar-brand is-flex-center">
+            <a class="navbar-item navbar-logo" href="/">
+            
+                <img src="/images/logo.png" alt="try-catch-finally是如何执行的" height="28">
+            
+            </a>
+        </div>
+        <div class="navbar-menu">
+            
+            <div class="navbar-start">
+                
+                <a class="navbar-item" href="/">Home</a>
+                
+                <a class="navbar-item" href="/archives">Archives</a>
+                
+                <a class="navbar-item" href="/categories">Categories</a>
+                
+                <a class="navbar-item" href="/tags">Tags</a>
+                
+                <a class="navbar-item" href="/about">About</a>
+                
+            </div>
+            
+            <div class="navbar-end">
+                
+                    
+                    
+                    <a class="navbar-item" target="_blank" title="Download on GitHub" href="https://github.com/CoderEugene">
+                        
+                        <i class="fab fa-github"></i>
+                        
+                    </a>
+                    
+                
+                
+                <a class="navbar-item is-hidden-tablet catalogue" title="Catalogue" href="javascript:;">
+                    <i class="fas fa-list-ul"></i>
+                </a>
+                
+                
+                <a class="navbar-item search" title="Search" href="javascript:;">
+                    <i class="fas fa-search"></i>
+                </a>
+                
+            </div>
+        </div>
+    </div>
+</nav>
+    
+    <section class="section">
+        <div class="container">
+            <div class="columns">
+                <div class="column is-8-tablet is-9-desktop is-9-widescreen has-order-2 column-main"><div class="card">
+    
+    <div class="card-content article ">
+        
+        <div class="level article-meta is-size-7 is-uppercase is-mobile is-overflow-x-auto">
+            <div class="level-left">
+                <!-- 增加图标 -->
+                <div class="level-item has-text-grey" style="float: left;"> 
+                    <i class="fas fa-calendar-alt"></i>&nbsp;&nbsp; <time class="level-item has-text-grey" datetime="2020-05-17T14:53:17.000Z">2020-05-17</time>
+                </div>
+                
+                <div class="level-item">
+                <i class="fas fa-folder-open"></i>&nbsp;&nbsp;
+                <a class="has-link-grey -link" href="/categories/Java基础/">Java基础</a>
+                </div>
+                
+                
+                <!-- 增加计数和相关图标 -->
+                
+                    <dev class="level-item has-text-grey"><i class="fa fa-eye"></i>&nbsp;&nbsp;Visitors&nbsp;<span id="busuanzi_value_page_pv"></span></dev>
+                
+            </div>
+        </div>
+        
+        <h1 class="title is-size-3 is-size-4-mobile has-text-weight-normal" align="center">
+            
+                try-catch-finally是如何执行的
+            
+        </h1>
+        <div class="content">
+            <p>根据 <a href="https://docs.oracle.com/javase/tutorial/essential/exceptions/finally.html" target="_blank" rel="noopener">JDK Tutorial</a> 的描述，除非在执行 try 或 catch 代码时线程被中断或 JVM 退出，finally 中的逻辑始终会执行。因此 finally 关键字常被用于释放资源，防止程序出现异常时出现资源泄露。本文主要探讨其在 JVM 层面的实现原理，以及 synchronized 关键字在类似场景的处理手段。首先来看一段简单的 try-finally 代码</p>
+<figure class="highlight java hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">testWithTryFinally</span><span class="hljs-params">()</span> </span>&#123;</span><br><span class="line">  <span class="hljs-keyword">try</span> &#123;</span><br><span class="line">    System.out.println(<span class="hljs-string">"try"</span>);</span><br><span class="line">  &#125; <span class="hljs-keyword">finally</span> &#123;</span><br><span class="line">    System.out.println(<span class="hljs-string">"finally"</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<a id="more"></a>
+<p>其对应字节码如下</p>
+<figure class="highlight plain hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">stack=2, locals=2, args_size=1</span><br><span class="line">    0: getstatic      #5                  // Field java/lang/System.out:Ljava/io/PrintStream;</span><br><span class="line">    3: ldc            #6                  // String try</span><br><span class="line">    5: invokevirtual  #7                  // Method java/io/PrintStream.println:(Ljava/lang/String;)V</span><br><span class="line">    8: getstatic      #5                  // Field java/lang/System.out:Ljava/io/PrintStream;</span><br><span class="line">    11: ldc           #8                  // String finally</span><br><span class="line">    13: invokevirtual #7                  // Method java/io/PrintStream.println:(Ljava/lang/String;)V</span><br><span class="line">    16: goto          30</span><br><span class="line">    19: astore_1</span><br><span class="line">    20: getstatic     #5                  // Field java/lang/System.out:Ljava/io/PrintStream;</span><br><span class="line">    23: ldc           #8                  // String finally</span><br><span class="line">    25: invokevirtual #7                  // Method java/io/PrintStream.println:(Ljava/lang/String;)V</span><br><span class="line">    28: aload_1</span><br><span class="line">    29: athrow</span><br><span class="line">    30: return</span><br><span class="line">Exception table:</span><br><span class="line">    from    to  target type</span><br><span class="line">       0     8    19   any</span><br></pre></td></tr></table></figure>
+<p>其中：</p>
+<ul>
+<li>0 - 8 行是 try 中的语句</li>
+<li>8 - 13，20 - 25 行是 finally 中的语句</li>
+</ul>
+<p>那么为什么 finally 语句会出现两遍呢？其实这两次分别对应程序正常执行和异常执行的情况，8 - 13 行是在正常执行时会执行的 finally 语句，执行完成后通过 16 行的 <code>goto</code> 指令跳转到 <code>return</code> 指令返回；而 20 - 25 行则是由异常表（Exception table）进行触发，可以看到异常表会捕捉 0 - 8 行（不包含第8行）的字节码出现的任意异常，并且跳转至 19 行开始执行 finally 语句，最后通过 29 行 <code>athrow</code> 指令向上抛出异常。</p>
+<p>那么如果增加 catch 呢，会有什么区别吗？</p>
+<figure class="highlight java hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">testWithTryCatchFinally</span><span class="hljs-params">()</span> </span>&#123;</span><br><span class="line">    <span class="hljs-keyword">try</span> &#123;</span><br><span class="line">      System.out.println(<span class="hljs-string">"try"</span>);</span><br><span class="line">    &#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;</span><br><span class="line">      System.out.println(<span class="hljs-string">"catch"</span>);</span><br><span class="line">    &#125; <span class="hljs-keyword">finally</span> &#123;</span><br><span class="line">      System.out.println(<span class="hljs-string">"finally"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+<p>其字节码如下：</p>
+<figure class="highlight plain hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">stack=2, locals=3, args_size=1</span><br><span class="line">    0: getstatic      #5                  // Field java/lang/System.out:Ljava/io/PrintStream;</span><br><span class="line">    3: ldc            #6                  // String try</span><br><span class="line">    5: invokevirtual  #7                  // Method java/io/PrintStream.println:(Ljava/lang/String;)V</span><br><span class="line">    8: getstatic      #5                  // Field java/lang/System.out:Ljava/io/PrintStream;</span><br><span class="line">    11: ldc           #8                  // String finally</span><br><span class="line">    13: invokevirtual #7                  // Method java/io/PrintStream.println:(Ljava/lang/String;)V</span><br><span class="line">    16: goto          50</span><br><span class="line">    19: astore_1</span><br><span class="line">    20: getstatic     #5                  // Field java/lang/System.out:Ljava/io/PrintStream;</span><br><span class="line">    23: ldc           #10                 // String catch</span><br><span class="line">    25: invokevirtual #7                  // Method java/io/PrintStream.println:(Ljava/lang/String;)V</span><br><span class="line">    28: getstatic     #5                  // Field java/lang/System.out:Ljava/io/PrintStream;</span><br><span class="line">    31: ldc           #8                  // String finally</span><br><span class="line">    33: invokevirtual #7                  // Method java/io/PrintStream.println:(Ljava/lang/String;)V</span><br><span class="line">    36: goto          50</span><br><span class="line">    39: astore_2</span><br><span class="line">    40: getstatic     #5                  // Field java/lang/System.out:Ljava/io/PrintStream;</span><br><span class="line">    43: ldc           #8                  // String finally</span><br><span class="line">    45: invokevirtual #7                  // Method java/io/PrintStream.println:(Ljava/lang/String;)V</span><br><span class="line">    48: aload_2</span><br><span class="line">    49: athrow</span><br><span class="line">    50: return</span><br><span class="line">    Exception table:</span><br><span class="line">        from    to  target type</span><br><span class="line">            0     8    19   Class java/lang/Exception</span><br><span class="line">            0     8    39   any</span><br><span class="line">            19    28   39   any</span><br></pre></td></tr></table></figure>
+<ul>
+<li>0 - 5 行是 try 中的语句</li>
+<li>20 - 25 行是 catch 中的语句</li>
+<li>8 - 13,   28 - 33, 40 - 45 行是 finally 中的语句</li>
+</ul>
+<p>大体上和之前逻辑相同，只不过这里 finally 中的语句又赋予了 catch 一遍，所以被 catch 后也能执行 finally 语句。根据上面两个例子，我们也验证了 <a href="https://docs.oracle.com/javase/tutorial/essential/exceptions/finally.html" target="_blank" rel="noopener">JDK Tutorial</a> 的描述，即<strong>除非在执行 try 或 catch 代码时线程被中断或 JVM 退出，finally 中的逻辑始终会执行。</strong></p>
+<h1 id="包含控制语句的-try-finally"><a href="#包含控制语句的-try-finally" class="headerlink" title="包含控制语句的 try-finally"></a>包含控制语句的 try-finally</h1><p>不知道大家有没有注意到，finally 语句的字节码前后总会出现 <code>astore</code>/<code>aload</code> 这样成对的指令，它们的作用是什么呢？根据指令本身的含义，我们可以知道</p>
+<ul>
+<li><code>astore</code> 是将操作数栈顶存储到局部变量表</li>
+<li><code>aload</code> 是将局部变量加载到操作数栈，以便后续 <code>ireturn</code> 指令将栈顶的值返回给方法调用者</li>
+</ul>
+<p>它在我们分析包含控制转移语句（比如 return）的 try-catch-finally 有着至关重要的作用。举一个包含控制语句的 try-finally 的例子</p>
+<figure class="highlight hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">int</span> <span class="hljs-title">testWithTryReturnFinally</span><span class="hljs-params">()</span> </span>&#123;</span><br><span class="line">  <span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>;</span><br><span class="line">  <span class="hljs-keyword">try</span> &#123;</span><br><span class="line">    <span class="hljs-keyword">return</span> i;</span><br><span class="line">  &#125; <span class="hljs-keyword">finally</span> &#123;</span><br><span class="line">    i++;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"># output: 0</span><br></pre></td></tr></table></figure>
+<p>其字节码如下：</p>
+<figure class="highlight plain hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">stack=1, locals=4, args_size=1</span><br><span class="line">    0: iconst_0</span><br><span class="line">    1: istore_1</span><br><span class="line">    2: iload_1</span><br><span class="line">    3: istore_2</span><br><span class="line">    4: iinc           1, 1</span><br><span class="line">    7: iload_2</span><br><span class="line">    8: ireturn</span><br><span class="line">    9: astore_3</span><br><span class="line">    10: iinc          1, 1</span><br><span class="line">    13: aload_3</span><br><span class="line">    14: athrow</span><br><span class="line">    Exception table:</span><br><span class="line">        from    to  target type</span><br><span class="line">            2     4     9   any</span><br></pre></td></tr></table></figure>
+<ul>
+<li>0：将常量 0 加载到操作数栈</li>
+<li>1：将栈顶 int 数值存入第 2 局部变量（其中由于这里是方法调用，第 1 局部变量被调用方执行 <code>invokevirtual</code> 指令将对象的引用隐式的传进来了），此时第 2 局部变量的值为 0</li>
+<li>2：将第 2 局部变量（0）的值加载到操作数栈</li>
+<li>3：<strong>将栈顶的值存入第 3 局部变量（这里开始了 finally 的逻辑），这里相当于对 try 中的结果做了一次备份</strong>，此时第 3 局部变量的值为 0</li>
+<li>4：将第 2 局部变量（0）的值加 1</li>
+<li>7：<strong>加载第 3 局部变量的值到操作数栈（finally 语句结束），这里取出的是之前备份的值</strong></li>
+<li>8：返回栈顶元素，此时由于栈顶是执行 finally 前备份的值，所以值为 0 </li>
+<li>9：将栈顶的异常对象存入第 4 局部变量（进入到该阶段的指令一般由异常表触发，所以此时栈顶是异常对象）</li>
+<li>10：将第 2 局部变量（0）的值加 1</li>
+<li>13：将第 4 局部变量（异常对象）加载到操作数栈</li>
+<li>14：将栈顶（异常对象）抛出</li>
+</ul>
+<p>上述解释将对于最终返回结果比较重要的 3 和 7 指令进行了加粗，它展示了<strong>虽然 finally 语句会执行，但是它的计算结果不一定会影响到返回值</strong>，所以这里是容易被误解的地方，平常要避免这样使用。</p>
+<p>那么是不是说放在 finally 中的计算都不会影响到 return 的结果呢？那当然不是，比如 return 不在 try 中，那么自然是会影响的，而如果 return 如果在 finally 中，又是什么样一种结果呢？比如：</p>
+<figure class="highlight hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">int</span> <span class="hljs-title">testWithTryReturnFinally</span><span class="hljs-params">()</span> </span>&#123;</span><br><span class="line">  <span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>;</span><br><span class="line">  <span class="hljs-keyword">try</span> &#123;</span><br><span class="line">    <span class="hljs-keyword">return</span> i;</span><br><span class="line">  &#125; <span class="hljs-keyword">finally</span> &#123;</span><br><span class="line">    i++;</span><br><span class="line">    <span class="hljs-keyword">return</span> i;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"># output: 1</span><br></pre></td></tr></table></figure>
+<p>其字节码如下：</p>
+<figure class="highlight plain hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">stack=1, locals=4, args_size=1</span><br><span class="line">    0: iconst_0</span><br><span class="line">    1: istore_1</span><br><span class="line">    2: iload_1</span><br><span class="line">    3: istore_2</span><br><span class="line">    4: iinc           1, 1</span><br><span class="line">    7: iload_1</span><br><span class="line">    8: ireturn</span><br><span class="line">    9: astore_3</span><br><span class="line">    10: iinc          1, 1</span><br><span class="line">    13: iload_1</span><br><span class="line">    14: ireturn</span><br><span class="line">    Exception table:</span><br><span class="line">        from    to  target type</span><br><span class="line">            2     4     9   any</span><br></pre></td></tr></table></figure>
+<p>看 7 和 13 指令，这里和刚才的有比较大的区别，它们用于返回的 iload_1 是原本的值（非备份），因此返回的结果是 1。当然还有一个更重要的区别是：<strong>在 finally 中使用了 return 后丢失了 <code>athrow</code>，这意味着 try 中抛出的异常会丢失</strong>（finally 中抛出的异常仍然会继续抛出），这是一个比较严重的问题。这里使用一个例子演示一下：</p>
+<figure class="highlight hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">int</span> <span class="hljs-title">testWithTryReturnFinallyException</span><span class="hljs-params">()</span> </span>&#123;</span><br><span class="line">  <span class="hljs-keyword">int</span> i = <span class="hljs-number">0</span>;</span><br><span class="line">  <span class="hljs-keyword">try</span> &#123;</span><br><span class="line">    <span class="hljs-keyword">if</span>(<span class="hljs-keyword">true</span>) &#123;</span><br><span class="line">      <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> RuntimeException();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="hljs-keyword">return</span> i;</span><br><span class="line">  &#125; <span class="hljs-keyword">finally</span> &#123;</span><br><span class="line">    i++;</span><br><span class="line">    <span class="hljs-keyword">return</span> i;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"># output: 1</span><br></pre></td></tr></table></figure>
+<p>上述代码并不会抛出异常，而是返回 1。所以 finally 中要避免使用 return，否则会得到意想不到的结果。经过上述几个例子，现在对 try-catch-finally 做了一个总结：</p>
+<ol>
+<li>除非在执行 try 或 catch 代码时线程被中断或 JVM 退出，否则 finally 中的逻辑始终会执行</li>
+<li>finally 语句块会在 try block 的控制转移语句（如 return）之前执行，但不会影响最终返回的结果，除非 finally 抛出了异常或使用了 return 等控制转移语句</li>
+<li>避免在 finally 中使用 return，这会导致 try block 中的异常被丢失</li>
+</ol>
+<h1 id="synchronized-如何保证始终执行-monitorexit"><a href="#synchronized-如何保证始终执行-monitorexit" class="headerlink" title="synchronized 如何保证始终执行 monitorexit"></a>synchronized 如何保证始终执行 monitorexit</h1><p>我们都知道 synchronized 对于同步语句块会使用 <code>monitorenter</code> 和 <code>monitorexit</code> 字节码指令，那么它们如何保证退出时始终执行 <code>monitorexit</code> 呢？答案其实和 finally 类似，我们举个例子：</p>
+<figure class="highlight java hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">testWithSync</span><span class="hljs-params">()</span> </span>&#123;</span><br><span class="line">  <span class="hljs-keyword">synchronized</span> (<span class="hljs-keyword">this</span>) &#123;</span><br><span class="line">    System.out.println(<span class="hljs-string">"sync"</span>);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>其字节码如下：</p>
+<figure class="highlight plain hljs"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">stack=2, locals=3, args_size=1</span><br><span class="line">    0: aload_0</span><br><span class="line">    1: dup</span><br><span class="line">    2: astore_1</span><br><span class="line">    3: monitorenter</span><br><span class="line">    4: getstatic     #5                  // Field java/lang/System.out:Ljava/io/PrintStream;</span><br><span class="line">    7: ldc           #6                  // String sync</span><br><span class="line">    9: invokevirtual #7                  // Method java/io/PrintStream.println:(Ljava/lang/String;)V</span><br><span class="line">    12: aload_1</span><br><span class="line">    13: monitorexit</span><br><span class="line">    14: goto          22</span><br><span class="line">    17: astore_2</span><br><span class="line">    18: aload_1</span><br><span class="line">    19: monitorexit</span><br><span class="line">    20: aload_2</span><br><span class="line">    21: athrow</span><br><span class="line">    22: return</span><br><span class="line">    Exception table:</span><br><span class="line">        from    to  target type</span><br><span class="line">            4    14    17   any</span><br><span class="line">            17   20    17   any</span><br></pre></td></tr></table></figure>
+<p>根据异常表可知即使同步块内容出现异常（4 - 14），仍然会跳转至 17 完成 <code>monitorexit</code> 的执行，这不就是 finally 的执行过程吗。但是这里相对 finally 有一个特殊的地方就是异常表对 17 - 20 行出现异常的情况进行了无限循环，而 17 - 20 行实际上就是执行 <code>monitorexit</code> 的过程，也就是说一旦 <code>monitorexit</code> 抛出异常，那么线程就会进入无限循环。根据 <a href="https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-6.html#jvms-6.5.monitorexit" target="_blank" rel="noopener">The Java Virtual Machine Instruction Set</a> 介绍，<code>monitorexit</code> 会存在抛出 NullPointerException 和 IllegalMonitorStateException 两种异常，这就证明确实会存在无限循环的可能性。</p>
+<blockquote>
+<p>If <em>objectref</em> is <code>null</code>, <em>monitorexit</em> throws a <code>NullPointerException</code>.</p>
+<p>Otherwise, if the thread that executes <em>monitorexit</em> is not the owner of the monitor associated with the instance referenced by <em>objectref</em>, <em>monitorexit</em> throws an <code>IllegalMonitorStateException</code>.</p>
+<p>Otherwise, if the Java Virtual Machine implementation enforces the rules on structured locking described in <a href="https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-2.html#jvms-2.11.10" target="_blank" rel="noopener">§2.11.10</a> and if the second of those rules is violated by the execution of this <em>monitorexit</em> instruction, then <em>monitorexit</em> throws an <code>IllegalMonitorStateException</code>.</p>
+</blockquote>
+<p>那么这合理吗？在 2002 年就有一个 Bug 描述 <a href="https://bugs.java.com/bugdatabase/view_bug.do?bug_id=4414101" target="_blank" rel="noopener">JDK-4414101 : synchronized statement generates catch around the monitorexit</a> 被提交，但最终被标记为非 bug。回答者认为无限循环是一个正确的行为，因为同步代码块的退出始终需要伴随着 monitor 的释放，一旦做不到这一点那么将线程放入无限循环中比执行其他操作更正确</p>
+
+        </div>
+        
+        <div class="level is-size-7 is-uppercase">
+            <div class="level-start">
+                <div class="level-item">
+                    <span class="is-size-6 has-text-grey has-mr-7">#</span>
+                    <a class="has-link-grey -link" href="/tags/JVM/">JVM</a>, <a class="has-link-grey -link" href="/tags/Java/">Java</a>
+                </div>
+            </div>
+        </div>
+        
+        
+        
+    </div>
+</div>
+
+
+
+
+
+<div class="card card-transparent">
+    <div class="level post-navigation is-flex-wrap is-mobile">
+        
+        
+        <div class="level-end">
+            <a class="level level-item has-link-grey  article-nav-next" href="/2020/02/05/如何优雅的避免空指针/">
+                <span class="level-item">如何优雅的避免空指针</span>
+                <i class="level-item fas fa-chevron-right"></i>
+            </a>
+        </div>
+        
+    </div>
+</div>
+
+
+
+<div class="card">
+    <div class="card-content">
+        <h3 class="title is-5 has-text-weight-normal">Comments</h3>
+        
+<div id="comment-container"></div>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1.4.1/dist/gitalk.css">
+<script src="https://cdn.jsdelivr.net/npm/gitalk@1.4.1/dist/gitalk.min.js"></script>
+<script>
+    var gitalk = new Gitalk({
+        clientID: 'a6ee64392ee1dba6a516',
+        clientSecret: '7638214b6ca106a17ff2301358bd4297d6e47773',
+        id: '81ef8d24af6c676d9289ba9a1f41e338',
+        repo: 'CoderEugene.github.io',
+        owner: 'CoderEugene',
+        admin: ["CoderEugene"]
+    })
+    gitalk.render('comment-container')
+</script>
+
+    </div>
+</div>
+</div>
+                
+
+
+
+
+<div class="column is-4-tablet is-3-desktop is-3-widescreen  has-order-1 column-left ">
+    
+        
+<div class="card widget">
+    <div class="card-content">
+        <nav class="level">
+            <div class="level-item has-text-centered">
+                <div>
+                    <img class="image is-128x128 has-mb-6" src="/images/avatar.JPG" alt="Mr·Zh">
+                    
+                    <p class="is-size-4 is-block">
+                        Mr·Zh
+                    </p>
+                    
+                    
+                    
+                    <p class="is-size-6 is-flex is-flex-center has-text-grey">
+                        <i class="fas fa-map-marker-alt has-mr-7"></i>
+                        <span>Hangzhou, China</span>
+                    </p>
+                    
+                </div>
+            </div>
+        </nav>
+        <nav class="level is-mobile">
+            <div class="level-item has-text-centered is-marginless">
+                <div>
+                    <p class="heading">
+                        Posts
+                    </p>
+                    <p class="title has-text-weight-normal">
+                        10
+                    </p>
+                </div>
+            </div>
+            <div class="level-item has-text-centered is-marginless">
+                <div>
+                    <p class="heading">
+                        Categories
+                    </p>
+                    <p class="title has-text-weight-normal">
+                        4
+                    </p>
+                </div>
+            </div>
+            <div class="level-item has-text-centered is-marginless">
+                <div>
+                    <p class="heading">
+                        Tags
+                    </p>
+                    <p class="title has-text-weight-normal">
+                        12
+                    </p>
+                </div>
+            </div>
+        </nav>
+        <div class="level">
+            <a class="level-item button is-link is-rounded" href="https://github.com/CoderEugene">
+                Follow</a>
+        </div>
+        
+        
+        <div class="level is-mobile">
+            
+            <a class="level-item button is-white is-marginless" target="_blank" title="Github" href="https://github.com/CoderEugene">
+                
+                <i class="fab fa-github"></i>
+                
+            </a>
+            
+            <a class="level-item button is-white is-marginless" target="_blank" title="Youtube" href="https://www.youtube.com/channel/UCw0q8SAGateu9wq6ERunCNw?view_as=subscriber">
+                
+                <i class="fab fa-youtube"></i>
+                
+            </a>
+            
+            <a class="level-item button is-white is-marginless" target="_blank" title="RSS" href="/atom.xml">
+                
+                <i class="fas fa-rss"></i>
+                
+            </a>
+            
+        </div>
+        
+    </div>
+</div>
+    
+        
+<div class="card widget" id="toc">
+    <div class="card-content">
+        <div class="menu">
+            <h3 class="menu-label">
+                Catalogue
+            </h3>
+            <ul class="menu-list"><li>
+        <a class="is-flex" href="#包含控制语句的-try-finally">
+        <span class="has-mr-6">1</span>
+        <span>包含控制语句的 try-finally</span>
+        </a></li><li>
+        <a class="is-flex" href="#synchronized-如何保证始终执行-monitorexit">
+        <span class="has-mr-6">2</span>
+        <span>synchronized 如何保证始终执行 monitorexit</span>
+        </a></li></ul>
+        </div>
+    </div>
+</div>
+
+    
+        
+<div class="card widget">
+    <div class="card-content">
+        <div class="menu">
+            <h3 class="menu-label">
+                Categories
+            </h3>
+            <ul class="menu-list">
+            <li>
+        <a class="level is-marginless" href="/categories/JUC/">
+            <span class="level-start">
+                <span class="level-item">JUC</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">4</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/JVM/">
+            <span class="level-start">
+                <span class="level-item">JVM</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/Java基础/">
+            <span class="level-start">
+                <span class="level-item">Java基础</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">4</span>
+            </span>
+        </a></li><li>
+        <a class="level is-marginless" href="/categories/Mysql/">
+            <span class="level-start">
+                <span class="level-item">Mysql</span>
+            </span>
+            <span class="level-end">
+                <span class="level-item tag">1</span>
+            </span>
+        </a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+    
+        
+<div class="card widget">
+    <div class="card-content">
+        <h3 class="menu-label">
+            Tag Cloud
+        </h3>
+        <a href="/tags/JVM/" style="font-size: 12.5px;">JVM</a> <a href="/tags/Java/" style="font-size: 20px;">Java</a> <a href="/tags/Mysql/" style="font-size: 10px;">Mysql</a> <a href="/tags/volatile/" style="font-size: 10px;">volatile</a> <a href="/tags/内存屏障/" style="font-size: 10px;">内存屏障</a> <a href="/tags/可见性/" style="font-size: 10px;">可见性</a> <a href="/tags/多线程/" style="font-size: 15px;">多线程</a> <a href="/tags/操作系统/" style="font-size: 10px;">操作系统</a> <a href="/tags/故障排查/" style="font-size: 10px;">故障排查</a> <a href="/tags/最佳实践/" style="font-size: 15px;">最佳实践</a> <a href="/tags/泛型/" style="font-size: 10px;">泛型</a> <a href="/tags/锁/" style="font-size: 17.5px;">锁</a>
+    </div>
+</div>
+
+    
+        <div class="card widget">
+    <div class="card-content">
+        <div class="menu">
+        <h3 class="menu-label">
+            Archives
+        </h3>
+        <ul class="menu-list">
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2020/05/">
+                <span class="level-start">
+                    <span class="level-item">May 2020</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">1</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2020/02/">
+                <span class="level-start">
+                    <span class="level-item">February 2020</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">1</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/12/">
+                <span class="level-start">
+                    <span class="level-item">December 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">3</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/06/">
+                <span class="level-start">
+                    <span class="level-item">June 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">1</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/02/">
+                <span class="level-start">
+                    <span class="level-item">February 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">1</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2019/01/">
+                <span class="level-start">
+                    <span class="level-item">January 2019</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">2</span>
+                </span>
+            </a>
+        </li>
+        
+        <li>
+            <a class="level is-marginless" href="/archives/2018/12/">
+                <span class="level-start">
+                    <span class="level-item">December 2018</span>
+                </span>
+                <span class="level-end">
+                    <span class="level-item tag">1</span>
+                </span>
+            </a>
+        </li>
+        
+        </ul>
+        </div>
+    </div>
+</div>
+    
+    
+        <div class="column-right-shadow is-hidden-widescreen ">
+        
+        </div>
+    
+</div>
+
+                
+            </div>
+        </div>
+    </section>
+    <footer class="footer">
+    <div class="container">
+        <div class="level">
+            <div class="level-start has-text-centered-mobile">
+                <a class="footer-logo is-block has-mb-6" href="/">
+                
+                    <img src="/images/logo.png" alt="try-catch-finally是如何执行的" height="28">
+                
+                </a>
+                <p class="is-size-7">
+                &copy; 2020 Mr·Zh&nbsp;
+                <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+				&nbsp;<i class="far fa-eye"></i>&nbsp;PV&nbsp;&nbsp;<span id="busuanzi_value_site_pv"></span>&nbsp;&nbsp;&nbsp;<i class="fa fa-user-md"></i>&nbsp;UV&nbsp;&nbsp;<span id="busuanzi_value_site_uv"></span>
+                </p>
+            </div>
+            <div class="level-end">
+            
+                <div class="field has-addons is-flex-center-mobile has-mt-5-mobile is-flex-wrap is-flex-middle">
+                
+                
+                <p class="control">
+                    <a class="button is-white is-large" target="_blank" title="Creative Commons" href="https://creativecommons.org/">
+                        
+                        <i class="fab fa-creative-commons"></i>
+                        
+                    </a>
+                </p>
+                
+                <p class="control">
+                    <a class="button is-white is-large" target="_blank" title="Attribution 4.0 International" href="https://creativecommons.org/licenses/by/4.0/">
+                        
+                        <i class="fab fa-creative-commons-by"></i>
+                        
+                    </a>
+                </p>
+                
+                <p class="control">
+                    <a class="button is-white is-large" target="_blank" title="Download on GitHub" href="https://github.com/CoderEugene">
+                        
+                        <i class="fab fa-github"></i>
+                        
+                    </a>
+                </p>
+                
+                </div>
+            
+            </div>
+        </div>
+    </div>
+</footer>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/moment@2.22.2/min/moment-with-locales.min.js"></script>
+<script>moment.locale("en");</script>
+
+
+    
+    
+    
+    <script src="/js/animation.js"></script>
+    
+
+    
+    
+    
+    <script src="https://cdn.jsdelivr.net/npm/lightgallery@1.6.8/dist/js/lightgallery.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js" defer></script>
+    <script src="/js/gallery.js" defer></script>
+    
+
+    
+    
+
+<div id="outdated">
+    <h6>Your browser is out-of-date!</h6>
+    <p>Update your browser to view this website correctly. <a id="btnUpdateBrowser" href="http://outdatedbrowser.com/">Update
+            my browser now </a></p>
+    <p class="last"><a href="#" id="btnCloseUpdateBrowser" title="Close">&times;</a></p>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/outdatedbrowser@1.1.5/outdatedbrowser/outdatedbrowser.min.js" defer></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        outdatedBrowser({
+            bgColor: '#f25648',
+            color: '#ffffff',
+            lowerThan: 'flex'
+        });
+    });
+</script>
+
+
+    
+    
+<script src="https://cdn.jsdelivr.net/npm/mathjax@2.7.5/unpacked/MathJax.js?config=TeX-MML-AM_CHTML" defer></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    MathJax.Hub.Config({
+        'HTML-CSS': {matchFontHeight: false},
+        SVG: {matchFontHeight: false},
+        CommonHTML: {matchFontHeight: false}
+    });
+});
+</script>
+
+    
+    
+
+<a id="back-to-top" title="Back to Top" href="javascript:;">
+    <i class="fas fa-chevron-up"></i>
+</a>
+<script src="/js/back-to-top.js" defer></script>
+
+
+    
+    
+
+    
+    
+    
+    
+
+    
+    
+    
+    
+    
+    <script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.4/dist/clipboard.min.js" defer></script>
+    <script src="/js/clipboard.js" defer></script>
+    
+
+    
+
+
+<script src="/js/main.js" defer></script>
+
+    
+    <div class="searchbox ins-search">
+    <div class="searchbox-container ins-search-container">
+        <div class="searchbox-input-wrapper">
+            <input type="text" class="searchbox-input ins-search-input" placeholder="Type something...">
+            <span class="searchbox-close ins-close ins-selectable"><i class="fa fa-times-circle"></i></span>
+        </div>
+        <div class="searchbox-result-wrapper ins-section-wrapper">
+            <div class="ins-section-container"></div>
+        </div>
+    </div>
+</div>
+<script>
+    (function (window) {
+        var INSIGHT_CONFIG = {
+            TRANSLATION: {
+                POSTS: 'Posts',
+                PAGES: 'Pages',
+                CATEGORIES: 'Categories',
+                TAGS: 'Tags',
+                UNTITLED: '(Untitled)',
+            },
+            CONTENT_URL: '/content.json',
+        };
+        window.INSIGHT_CONFIG = INSIGHT_CONFIG;
+    })(window);
+</script>
+<script src="/js/insight.js" defer></script>
+<link rel="stylesheet" href="/css/search.css">
+<link rel="stylesheet" href="/css/insight.css">
+    
+</body>
+</html>
